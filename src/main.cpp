@@ -13,13 +13,6 @@ int main(int argc, char* argv[])
 
 	Window window("Back to OpenGL", WINDOW_WIDTH, WINDOW_HEIGHT);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "Failed to initialize GLAD." << std::endl;
-		return -1;
-	}
-
-	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-
 	// Query OpenGL version
 	const GLubyte* version = glGetString(GL_VERSION);
 	const GLubyte* renderer = glGetString(GL_RENDERER);
@@ -28,6 +21,8 @@ int main(int argc, char* argv[])
 	std::cout << version << std::endl;
 	std::cout << renderer << std::endl;
 	std::cout << vendor << std::endl;
+
+	window.InitScene();
 
 	window.Run();
 
