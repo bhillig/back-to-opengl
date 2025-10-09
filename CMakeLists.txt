@@ -25,11 +25,13 @@ set(SOURCES
 	src/main.cpp
 	src/Window.cpp
 	src/Renderer/ElementBuffer.cpp
+	src/Renderer/Shader.cpp
 	src/Renderer/VertexBuffer.cpp)
 
 set(HEADERS
 	include/Window.h
 	include/Renderer/ElementBuffer.h
+	include/Renderer/Shader.h
 	include/Renderer/VertexBuffer.h)
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})

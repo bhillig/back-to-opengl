@@ -1,6 +1,7 @@
 #include "Window.h"
 
 #include <Renderer/ElementBuffer.h>
+#include <Renderer/Shader.h>
 #include <Renderer/VertexBuffer.h>
 
 #include <iostream>
@@ -105,9 +106,6 @@ Window::~Window()
 
 void Window::InitScene()
 {
-	int  success;
-	char infoLog[512];
-
 	// Vertices of triangle one
 	const float vertices[] = {
 		-1.0f, 0.0f, 0.f, // Bottom-left
@@ -115,6 +113,7 @@ void Window::InitScene()
 		0.0f, 0.0f, 0.0f, // Bottom-right
 	};
 
+	// Vertices of triangle two
 	const float vertices2[] = {
 		0.0f, 0.0f, 0.0f, // Bottom-left
 		0.5f, 0.5f, 0.0f, // Top
@@ -173,75 +172,9 @@ void Window::InitScene()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	{
-		// Create a vertex shader object
-		unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-		// Load the vertex shader object with our vertex shader source code
-		glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-
-		// Compile the vertex shader
-		glCompileShader(vertexShader);
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-			glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-			std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-		}
-
-		// Create a fragment shader object
-		unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-		// Load the fragment shader object with our fragment shader source code
-		glShaderSource(fragmentShader, 1, &orangeFragmentShaderSource, NULL);
-
-		// Compile the fragment shader
-		glCompileShader(fragmentShader);
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-			glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-			std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-		}
-
-		// Create a shader program
-		m_shaderProgram = glCreateProgram();
-
-		// Attach vertex and fragment shaders to the program
-		glAttachShader(m_shaderProgram, vertexShader);
-		glAttachShader(m_shaderProgram, fragmentShader);
-
-		// Link the shader program
-		glLinkProgram(m_shaderProgram);
-		glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &success);
-		if (!success) {
-			glGetProgramInfoLog(m_shaderProgram, 512, NULL, infoLog);
-			std::cout << "ERROR::SHADER::LINKING::FAILED\n" << infoLog << std::endl;
-		}
-
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
-	}
-	{
-		unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-		glCompileShader(vertexShader);
-
-		unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &yellowFragmentShaderSource, NULL);
-		glCompileShader(fragmentShader);
-
-		m_shaderProgram2 = glCreateProgram();
-
-		glAttachShader(m_shaderProgram2, vertexShader);
-		glAttachShader(m_shaderProgram2, fragmentShader);
-
-		glLinkProgram(m_shaderProgram2);
-
-		glDeleteShader(vertexShader);
-		glDeleteShader(fragmentShader);
-	}
-	
+	// Create orange and yellow shaders
+	m_orangeShader = std::make_unique<Shader>(vertexShaderSource, orangeFragmentShaderSource);
+	m_yellowShader = std::make_unique<Shader>(vertexShaderSource, yellowFragmentShaderSource);
 }
 
 void Window::Run()
@@ -255,10 +188,16 @@ void Window::Run()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Draw two triangles
-		glUseProgram(m_shaderProgram);
+		if (m_orangeShader)
+		{
+			m_orangeShader->Bind();
+		}
 		glBindVertexArray(m_vao);
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-		glUseProgram(m_shaderProgram2);
+		if (m_yellowShader)
+		{
+			m_yellowShader->Bind();
+		}
 		glBindVertexArray(m_vao2);
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);

@@ -2,6 +2,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <Renderer/Shader.h>
+
+#include <memory>
+
 class Window
 {
 public:
@@ -19,6 +23,6 @@ private:
 
 	unsigned int m_vao;
 	unsigned int m_vao2;
-	unsigned int m_shaderProgram;
-	unsigned int m_shaderProgram2;
+	std::unique_ptr<Shader> m_orangeShader;
+	std::unique_ptr<Shader> m_yellowShader;
 };
