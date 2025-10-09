@@ -1,5 +1,6 @@
 #include "Window.h"
 
+#include <Renderer/ElementBuffer.h>
 #include <Renderer/VertexBuffer.h>
 
 #include <iostream>
@@ -139,14 +140,8 @@ void Window::InitScene()
 	vertexBuffer.Bind();
 
 	// Create an element buffer object
-	unsigned int ebo;
-	glGenBuffers(1, &ebo);
-
-	// Bind the element buffer object
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-	// Load the ebo with indices
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	ElementBuffer elementBuffer(indices, sizeof(indices));
+	elementBuffer.Bind();
 
 	// Specify how our vertex data is formatted
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -166,10 +161,8 @@ void Window::InitScene()
 	vertexBuffer2.Bind();
 
 	// Create and bind ebo2
-	unsigned int ebo2;
-	glGenBuffers(1, &ebo2);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo2);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices2), indices2, GL_STATIC_DRAW);
+	ElementBuffer elementBuffer2(indices2, sizeof(indices2));
+	elementBuffer2.Bind();
 
 	// Specify how our vertex data is formatted
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
