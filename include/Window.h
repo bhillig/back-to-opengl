@@ -18,6 +18,5 @@ private:
 	GLFWwindow* m_window;
 
 	unsigned int m_vao;
-	unsigned int m_vbo;
 	unsigned int m_shaderProgram;
 };

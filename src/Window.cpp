@@ -38,6 +38,19 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	else if (key == GLFW_KEY_O && action == GLFW_PRESS) {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	}
+	// Toggle wireframe mode
+	else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+		GLint polygonMode[2];
+		glGetIntegerv(GL_POLYGON_MODE, polygonMode);
+		if (polygonMode[0] == GL_FILL)
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+		else
+		{
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+	}
 }
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -85,11 +98,17 @@ void Window::InitScene()
 	int  success;
 	char infoLog[512];
 
-	// Vertices of a triangle
+	// Vertices of a rectangle
 	const float vertices[] = {
-		-0.5f, -0.5f, 0.f,
-		0.5f, -0.5f, 0.f,
-		0.f, 0.5f, 0.f
+		-0.5f, -0.5f, 0.f, // Bottom-left
+		0.5f, -0.5f, 0.f, // Bottom-right
+		0.5f, 0.5f, 0.0f, // Top-right
+		-0.5f, 0.5f, 0.f // Top-left
+	};
+
+	const unsigned int indices[] = {
+		0, 1, 2,
+		2, 3, 0
 	};
 
 	// Create a vertex array object
@@ -99,13 +118,24 @@ void Window::InitScene()
 	glBindVertexArray(m_vao);
 
 	// Create a vertex buffer object
-	glGenBuffers(1, &m_vbo);
+	unsigned int vbo;
+	glGenBuffers(1, &vbo);
 
 	// Bind the vertex buffer object
-	glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	// Load the vbo with vertex data
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// Create an element buffer object
+	unsigned int ebo;
+	glGenBuffers(1, &ebo);
+
+	// Bind the element buffer object
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+	// Load the ebo with indices
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// Specify how our vertex data is formatted
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -156,6 +186,11 @@ void Window::InitScene()
 		std::cout << "ERROR::SHADER::LINKING::FAILED\n" << infoLog << std::endl;
 	}
 
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glUseProgram(0);
+
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 }
@@ -170,13 +205,10 @@ void Window::Run()
 		// Clear screen with the color specified
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Draw orange triangle
+		// Draw orange rectangle
 		glUseProgram(m_shaderProgram);
 		glBindVertexArray(m_vao);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		// Unbind 
-		glUseProgram(0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		// Swap front and back buffers
