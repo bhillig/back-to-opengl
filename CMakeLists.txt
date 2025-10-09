@@ -23,10 +23,12 @@ add_subdirectory(external/glad)
 
 set(SOURCES 
 	src/main.cpp
-	src/Window.cpp)
+	src/Window.cpp
+	src/Renderer/VertexBuffer.cpp)
 
 set(HEADERS
-	include/Window.h)
+	include/Window.h
+	include/Renderer/VertexBuffer.h)
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 

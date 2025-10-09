@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include <Renderer/VertexBuffer.h>
+
 #include <iostream>
 
 const char* vertexShaderSource = "#version 460 core\n"
@@ -133,14 +135,8 @@ void Window::InitScene()
 	glBindVertexArray(m_vao);
 
 	// Create a vertex buffer object
-	unsigned int vbo;
-	glGenBuffers(1, &vbo);
-
-	// Bind the vertex buffer object
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	// Load the vbo with vertex data
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	VertexBuffer vertexBuffer(vertices, sizeof(vertices));
+	vertexBuffer.Bind();
 
 	// Create an element buffer object
 	unsigned int ebo;
@@ -166,10 +162,8 @@ void Window::InitScene()
 	glBindVertexArray(m_vao2);
 
 	// Create and bind vbo2
-	unsigned int vbo2;
-	glGenBuffers(1, &vbo2);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+	VertexBuffer vertexBuffer2(vertices2, sizeof(vertices2));
+	vertexBuffer2.Bind();
 
 	// Create and bind ebo2
 	unsigned int ebo2;
