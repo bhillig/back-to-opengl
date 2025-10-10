@@ -2,7 +2,9 @@
 
 #include <Renderer/ElementBuffer.h>
 #include <Renderer/Shader.h>
+#include <Renderer/VertexArray.h>
 #include <Renderer/VertexBuffer.h>
+#include <Renderer/VertexBufferLayout.h>
 
 #include <iostream>
 
@@ -129,22 +131,22 @@ void Window::InitScene()
 	};
 
 	// Create a vertex array object
-	glGenVertexArrays(1, &m_vao);
-
-	// Bind the vertex array object
-	glBindVertexArray(m_vao);
+	m_vao = std::make_unique<VertexArray>();
+	m_vao->Bind();
 
 	// Create a vertex buffer object
 	VertexBuffer vertexBuffer(vertices, sizeof(vertices));
 	vertexBuffer.Bind();
 
+	// Specify how our vertex data is formatted
+	VertexBufferLayout vertexBufferLayout;
+	vertexBufferLayout.Push<float>(3);
+
+	m_vao->Add(vertexBuffer, vertexBufferLayout);
+
 	// Create an element buffer object
 	ElementBuffer elementBuffer(indices, sizeof(indices));
 	elementBuffer.Bind();
-
-	// Specify how our vertex data is formatted
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
 
 	// Unbind
 	glBindVertexArray(0);
@@ -152,20 +154,18 @@ void Window::InitScene()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// Create and bind vao2
-	glGenVertexArrays(1, &m_vao2);
-	glBindVertexArray(m_vao2);
+	m_vao2 = std::make_unique<VertexArray>();
+	m_vao2->Bind();
 
 	// Create and bind vbo2
 	VertexBuffer vertexBuffer2(vertices2, sizeof(vertices2));
 	vertexBuffer2.Bind();
 
+	m_vao2->Add(vertexBuffer2, vertexBufferLayout);
+
 	// Create and bind ebo2
 	ElementBuffer elementBuffer2(indices2, sizeof(indices2));
 	elementBuffer2.Bind();
-
-	// Specify how our vertex data is formatted
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
 
 	// Unbind again
 	glBindVertexArray(0);
@@ -188,17 +188,11 @@ void Window::Run()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Draw two triangles
-		if (m_orangeShader)
-		{
-			m_orangeShader->Bind();
-		}
-		glBindVertexArray(m_vao);
+		m_orangeShader->Bind();
+		m_vao->Bind();
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-		if (m_yellowShader)
-		{
-			m_yellowShader->Bind();
-		}
-		glBindVertexArray(m_vao2);
+		m_yellowShader->Bind();
+		m_vao2->Bind();
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 

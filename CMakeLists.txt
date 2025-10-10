@@ -22,17 +22,21 @@ FetchContent_MakeAvailable(glfw)
 add_subdirectory(external/glad)
 
 set(SOURCES 
-	src/main.cpp
+	src/Main.cpp
 	src/Window.cpp
 	src/Renderer/ElementBuffer.cpp
 	src/Renderer/Shader.cpp
-	src/Renderer/VertexBuffer.cpp)
+	src/Renderer/VertexArray.cpp
+	src/Renderer/VertexBuffer.cpp
+	src/Renderer/VertexBufferLayout.cpp)
 
 set(HEADERS
 	include/Window.h
 	include/Renderer/ElementBuffer.h
 	include/Renderer/Shader.h
-	include/Renderer/VertexBuffer.h)
+	include/Renderer/VertexArray.h
+	include/Renderer/VertexBuffer.h
+	include/Renderer/VertexBufferLayout.h)
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 

@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include <Renderer/Shader.h>
+#include <Renderer/VertexArray.h>
 
 #include <memory>
 
@@ -21,8 +22,8 @@ public:
 private:
 	GLFWwindow* m_window;
 
-	unsigned int m_vao;
-	unsigned int m_vao2;
+	std::unique_ptr<VertexArray> m_vao;
+	std::unique_ptr<VertexArray> m_vao2;
 	std::unique_ptr<Shader> m_orangeShader;
 	std::unique_ptr<Shader> m_yellowShader;
 };
