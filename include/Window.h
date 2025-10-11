@@ -24,6 +24,6 @@ private:
 
 	std::unique_ptr<VertexArray> m_vao;
 	std::unique_ptr<VertexArray> m_vao2;
-	std::unique_ptr<Shader> m_orangeShader;
-	std::unique_ptr<Shader> m_yellowShader;
+	std::unique_ptr<Shader> m_shader;
+	std::unique_ptr<Shader> m_shader2;
 };

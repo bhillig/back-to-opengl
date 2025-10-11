@@ -28,7 +28,8 @@ set(SOURCES
 	src/Renderer/Shader.cpp
 	src/Renderer/VertexArray.cpp
 	src/Renderer/VertexBuffer.cpp
-	src/Renderer/VertexBufferLayout.cpp)
+	src/Renderer/VertexBufferLayout.cpp
+	src/Utils/FileUtils.cpp)
 
 set(HEADERS
 	include/Window.h
@@ -36,10 +37,21 @@ set(HEADERS
 	include/Renderer/Shader.h
 	include/Renderer/VertexArray.h
 	include/Renderer/VertexBuffer.h
-	include/Renderer/VertexBufferLayout.h)
+	include/Renderer/VertexBufferLayout.h
+	include/Utils/FileUtils.h)
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 
 target_link_libraries(BackToOpenGL PRIVATE OpenGL::GL glfw glad)
 
 target_include_directories(BackToOpenGL PRIVATE include)
+
+# Copy resources to build folder
+add_custom_command(TARGET BackToOpenGL POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/rc"
+        "$<TARGET_FILE_DIR:BackToOpenGL>/rc"
+)
+
+# Define SHADER_DIR
+target_compile_definitions(BackToOpenGL PRIVATE SHADER_DIR="$<TARGET_FILE_DIR:BackToOpenGL>/rc/shaders")

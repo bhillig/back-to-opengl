@@ -8,26 +8,11 @@
 
 #include <iostream>
 
-const char* vertexShaderSource = "#version 460 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
+const std::string kPositionAndColorVS = SHADER_DIR + std::string("/positionAndColor.vertex.glsl");
+const std::string kPositionVS = SHADER_DIR + std::string("/position.vertex.glsl");
 
-const char* orangeFragmentShaderSource = "#version 460 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"	FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-"}\0";
-
-const char* yellowFragmentShaderSource = "#version 460 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"	FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"
-"}\0";
+const std::string kColorFromVertexFS = SHADER_DIR + std::string("/colorFromVertex.fragment.glsl");
+const std::string kYellowFS = SHADER_DIR + std::string("/yellow.fragment.glsl");
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -76,6 +61,7 @@ Window::Window(const char* name, int width, int height)
 	// Set window hints (OpenGL version and profile)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required for macOS
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Create window with (width, height, name)
@@ -110,9 +96,10 @@ void Window::InitScene()
 {
 	// Vertices of triangle one
 	const float vertices[] = {
-		-1.0f, 0.0f, 0.f, // Bottom-left
-		-0.5f, 0.5f, 0.f, // Top
-		0.0f, 0.0f, 0.0f, // Bottom-right
+		// Position       // Color
+		-1.0f, 0.0f, 0.f, 1.0f, 0.0f, 0.0f, // Bottom-left
+		-0.5f, 0.5f, 0.f, 0.0f, 1.0f, 0.0f, // Top
+		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f // Bottom-right
 	};
 
 	// Vertices of triangle two
@@ -141,6 +128,7 @@ void Window::InitScene()
 	// Specify how our vertex data is formatted
 	VertexBufferLayout vertexBufferLayout;
 	vertexBufferLayout.Push<float>(3);
+	vertexBufferLayout.Push<float>(3);
 
 	m_vao->Add(vertexBuffer, vertexBufferLayout);
 
@@ -161,7 +149,10 @@ void Window::InitScene()
 	VertexBuffer vertexBuffer2(vertices2, sizeof(vertices2));
 	vertexBuffer2.Bind();
 
-	m_vao2->Add(vertexBuffer2, vertexBufferLayout);
+	VertexBufferLayout vertexBufferLayout2;
+	vertexBufferLayout2.Push<float>(3);
+
+	m_vao2->Add(vertexBuffer2, vertexBufferLayout2);
 
 	// Create and bind ebo2
 	ElementBuffer elementBuffer2(indices2, sizeof(indices2));
@@ -173,8 +164,8 @@ void Window::InitScene()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// Create orange and yellow shaders
-	m_orangeShader = std::make_unique<Shader>(vertexShaderSource, orangeFragmentShaderSource);
-	m_yellowShader = std::make_unique<Shader>(vertexShaderSource, yellowFragmentShaderSource);
+	m_shader = std::make_unique<Shader>(kPositionAndColorVS, kColorFromVertexFS);
+	m_shader2 = std::make_unique<Shader>(kPositionVS, kYellowFS);
 }
 
 void Window::Run()
@@ -187,14 +178,20 @@ void Window::Run()
 		// Clear screen with the color specified
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// Update uniforms
+		const float time = glfwGetTime();
+		const float red = (std::sin(time) / 2.0f) + 0.5f;
+		m_shader->SetUniform4f("color", red, 0.0f, 0.0f, 1.0f);
+
 		// Draw two triangles
-		m_orangeShader->Bind();
+		m_shader->Bind();
 		m_vao->Bind();
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-		m_yellowShader->Bind();
+		m_shader2->Bind();
 		m_vao2->Bind();
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		m_shader2->Unbind();
+		m_vao2->Unbind();
 
 		// Swap front and back buffers
 		glfwSwapBuffers(m_window);

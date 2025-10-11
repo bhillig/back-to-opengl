@@ -1,5 +1,7 @@
 #include <Renderer/Shader.h>
 
+#include <Utils/FileUtils.h>
+
 #include <glad/glad.h>
 
 #include <iostream>
@@ -39,10 +41,15 @@ void LinkShaderProgram(unsigned int shaderProgram)
 	}
 }
 
-Shader::Shader(const char* vertexShaderSource, const char* fragmentShaderSource)
+Shader::Shader(const std::string& vertexShaderFilePath, const std::string& fragmentShaderFilePath)
 {
-	unsigned int vertexShader = CompileShader(vertexShaderSource, GL_VERTEX_SHADER);
-	unsigned int fragmentShader = CompileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+	std::string vertexShaderSource;
+	fileUtils::ReadTextFromFile(vertexShaderFilePath, vertexShaderSource);
+	std::string fragmentShaderSource;
+	fileUtils::ReadTextFromFile(fragmentShaderFilePath, fragmentShaderSource);
+
+	unsigned int vertexShader = CompileShader(vertexShaderSource.c_str(), GL_VERTEX_SHADER);
+	unsigned int fragmentShader = CompileShader(fragmentShaderSource.c_str(), GL_FRAGMENT_SHADER);
 
 	m_shaderProgram = glCreateProgram();
 
@@ -68,4 +75,34 @@ void Shader::Bind() const
 void Shader::Unbind() const
 {
 	glUseProgram(0);
+}
+
+bool Shader::SetUniform4f(const char* name, float v0, float v1, float v2, float v3)
+{
+	const int uniformLocation = GetUniformLocation(name);
+	if (uniformLocation == -1) {
+		return false;
+	}
+
+	glUseProgram(m_shaderProgram);
+	glUniform4f(uniformLocation, v0, v1, v2, v3);
+	glUseProgram(0);
+	return true;
+}
+
+int Shader::GetUniformLocation(const char* name)
+{
+	if (m_uniformCache.contains(name))
+	{
+		return m_uniformCache.at(name);
+	}
+
+	const int uniformLocation = glGetUniformLocation(m_shaderProgram, name);
+	if (uniformLocation != -1)
+	{
+		// Cache the uniform location
+		m_uniformCache[name] = uniformLocation;
+	}
+
+	return uniformLocation;
 }
