@@ -20,6 +20,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glfw)
 
 add_subdirectory(external/glad)
+add_subdirectory(external/stb_image)
 
 set(SOURCES 
 	src/Main.cpp
@@ -42,7 +43,7 @@ set(HEADERS
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 
-target_link_libraries(BackToOpenGL PRIVATE OpenGL::GL glfw glad)
+target_link_libraries(BackToOpenGL PRIVATE OpenGL::GL glfw glad stb_image)
 
 target_include_directories(BackToOpenGL PRIVATE include)
 
