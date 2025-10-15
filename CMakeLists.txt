@@ -56,3 +56,5 @@ add_custom_command(TARGET BackToOpenGL POST_BUILD
 
 # Define SHADER_DIR
 target_compile_definitions(BackToOpenGL PRIVATE SHADER_DIR="$<TARGET_FILE_DIR:BackToOpenGL>/rc/shaders")
+# Define TEXTURE_DIR
+target_compile_definitions(BackToOpenGL PRIVATE TEXTURE_DIR="$<TARGET_FILE_DIR:BackToOpenGL>/rc/textures")

@@ -6,13 +6,21 @@
 #include <Renderer/VertexBuffer.h>
 #include <Renderer/VertexBufferLayout.h>
 
+#include <stb_image.h>
+
 #include <iostream>
 
-const std::string kPositionAndColorVS = SHADER_DIR + std::string("/positionAndColor.vertex.glsl");
 const std::string kPositionVS = SHADER_DIR + std::string("/position.vertex.glsl");
+const std::string kPositionAndColorVS = SHADER_DIR + std::string("/positionAndColor.vertex.glsl");
+const std::string kPositionColorAndTexCoordVS = SHADER_DIR + std::string("/positionColorAndTexCoords.vertex.glsl");
 
 const std::string kColorFromVertexFS = SHADER_DIR + std::string("/colorFromVertex.fragment.glsl");
+const std::string kColorFromTextureFS = SHADER_DIR + std::string("/colorFromTexture.fragment.glsl");
 const std::string kYellowFS = SHADER_DIR + std::string("/yellow.fragment.glsl");
+
+const std::string kContainerTexture = TEXTURE_DIR + std::string("/container.jpg");
+const std::string kWallTexture = TEXTURE_DIR + std::string("/wall.jpg");
+
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -94,12 +102,13 @@ Window::~Window()
 
 void Window::InitScene()
 {
-	// Vertices of triangle one
+	// Vertices of rectangle
 	const float vertices[] = {
-		// Position       // Color
-		-1.0f, 0.0f, 0.f, 1.0f, 0.0f, 0.0f, // Bottom-left
-		-0.5f, 0.5f, 0.f, 0.0f, 1.0f, 0.0f, // Top
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f // Bottom-right
+		// Position			// Color			// Texture Coordinates
+		-0.5f, -0.5f, 0.f,	1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Bottom-left
+		0.5f, -0.5f, 0.f,	0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // Bottom-right
+		0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Top-right
+		-0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f,   0.0f, 1.0f	// Top-left
 	};
 
 	// Vertices of triangle two
@@ -111,6 +120,7 @@ void Window::InitScene()
 
 	const unsigned int indices[] = {
 		0, 1, 2,
+		2, 3, 0
 	};
 
 	const unsigned int indices2[] = {
@@ -127,8 +137,9 @@ void Window::InitScene()
 
 	// Specify how our vertex data is formatted
 	VertexBufferLayout vertexBufferLayout;
-	vertexBufferLayout.Push<float>(3);
-	vertexBufferLayout.Push<float>(3);
+	vertexBufferLayout.Push<float>(3); // Position
+	vertexBufferLayout.Push<float>(3); // Color
+	vertexBufferLayout.Push<float>(2); // Texture Coordinates
 
 	m_vao->Add(vertexBuffer, vertexBufferLayout);
 
@@ -150,7 +161,7 @@ void Window::InitScene()
 	vertexBuffer2.Bind();
 
 	VertexBufferLayout vertexBufferLayout2;
-	vertexBufferLayout2.Push<float>(3);
+	vertexBufferLayout2.Push<float>(3); // Position
 
 	m_vao2->Add(vertexBuffer2, vertexBufferLayout2);
 
@@ -158,14 +169,35 @@ void Window::InitScene()
 	ElementBuffer elementBuffer2(indices2, sizeof(indices2));
 	elementBuffer2.Bind();
 
+	// Create orange and yellow shaders
+	m_shader = std::make_unique<Shader>(kPositionColorAndTexCoordVS, kColorFromTextureFS);
+	m_shader2 = std::make_unique<Shader>(kPositionVS, kYellowFS);
+
+	// Create and bind texture
+	glGenTextures(1, &m_textureID);
+	glBindTexture(GL_TEXTURE_2D, m_textureID);
+
+	// Set texture parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// Load texture and generate mipmap
+	int width, height, numberOfColorChannels;
+	const unsigned char* data = stbi_load(kContainerTexture.c_str(), &width, &height, &numberOfColorChannels, 0);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	// Free image memory now that the texture is set
+	stbi_image_free((void*)data);
+
 	// Unbind again
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	// Create orange and yellow shaders
-	m_shader = std::make_unique<Shader>(kPositionAndColorVS, kColorFromVertexFS);
-	m_shader2 = std::make_unique<Shader>(kPositionVS, kYellowFS);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Window::Run()
@@ -178,15 +210,14 @@ void Window::Run()
 		// Clear screen with the color specified
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Update uniforms
-		const float time = glfwGetTime();
-		const float red = (std::sin(time) / 2.0f) + 0.5f;
-		m_shader->SetUniform4f("color", red, 0.0f, 0.0f, 1.0f);
-
-		// Draw two triangles
+		// Draw rectangle
+		glBindTexture(GL_TEXTURE_2D, m_textureID);
 		m_shader->Bind();
 		m_vao->Bind();
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// Draw triangle
 		m_shader2->Bind();
 		m_vao2->Bind();
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);

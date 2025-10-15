@@ -26,4 +26,5 @@ private:
 	std::unique_ptr<VertexArray> m_vao2;
 	std::unique_ptr<Shader> m_shader;
 	std::unique_ptr<Shader> m_shader2;
+	unsigned int m_textureID;
 };
