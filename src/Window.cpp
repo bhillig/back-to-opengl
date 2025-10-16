@@ -8,6 +8,7 @@
 
 #include <stb_image.h>
 
+#include <algorithm>
 #include <iostream>
 
 const std::string kPositionVS = SHADER_DIR + std::string("/position.vertex.glsl");
@@ -16,14 +17,19 @@ const std::string kPositionColorAndTexCoordVS = SHADER_DIR + std::string("/posit
 
 const std::string kColorFromVertexFS = SHADER_DIR + std::string("/colorFromVertex.fragment.glsl");
 const std::string kColorFromTextureFS = SHADER_DIR + std::string("/colorFromTexture.fragment.glsl");
+const std::string kColorFromTextureMixFS = SHADER_DIR + std::string("/colorFromTextureMix.fragment.glsl");
 const std::string kYellowFS = SHADER_DIR + std::string("/yellow.fragment.glsl");
 
 const std::string kContainerTexture = TEXTURE_DIR + std::string("/container.jpg");
 const std::string kWallTexture = TEXTURE_DIR + std::string("/wall.jpg");
+const std::string kAwesomeFaceTexture = TEXTURE_DIR + std::string("/awesomeface.png");
 
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+	// Retrieve the pointer to your Window instance
+	Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	if (!self) return;
+
 	// Close window
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -57,6 +63,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 	}
+	else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		self->mixAmount = std::clamp(self->mixAmount + 0.2f, 0.0f, 1.0f);
+	}
+	else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+		self->mixAmount = std::clamp(self->mixAmount - 0.2f, 0.0f, 1.0f);
+	}
 }
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -75,12 +87,15 @@ Window::Window(const char* name, int width, int height)
 	// Create window with (width, height, name)
 	m_window = glfwCreateWindow(width, height, name, nullptr, nullptr);
 
+	// Update context
+	glfwMakeContextCurrent(m_window);
+
+	glfwSetWindowUserPointer(m_window, this);
+
 	// Set GLFW callbacks
 	glfwSetKeyCallback(m_window, key_callback);
 	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
 
-	// Update context
-	glfwMakeContextCurrent(m_window);
 
 	// Initialize GLAD
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -169,29 +184,18 @@ void Window::InitScene()
 	ElementBuffer elementBuffer2(indices2, sizeof(indices2));
 	elementBuffer2.Bind();
 
-	// Create orange and yellow shaders
-	m_shader = std::make_unique<Shader>(kPositionColorAndTexCoordVS, kColorFromTextureFS);
+	// Create shaders
+	m_shader = std::make_unique<Shader>(kPositionColorAndTexCoordVS, kColorFromTextureMixFS);
 	m_shader2 = std::make_unique<Shader>(kPositionVS, kYellowFS);
 
-	// Create and bind texture
-	glGenTextures(1, &m_textureID);
-	glBindTexture(GL_TEXTURE_2D, m_textureID);
+	// Create textures
+	const unsigned int textureSlot = 0;
+	const unsigned int texture2Slot = 1;
+	m_texture = std::make_unique<Texture>(kContainerTexture, textureSlot);
+	m_texture2 = std::make_unique<Texture>(kAwesomeFaceTexture, texture2Slot);
 
-	// Set texture parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// Load texture and generate mipmap
-	int width, height, numberOfColorChannels;
-	const unsigned char* data = stbi_load(kContainerTexture.c_str(), &width, &height, &numberOfColorChannels, 0);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	// Free image memory now that the texture is set
-	stbi_image_free((void*)data);
+	m_shader->SetUniform1i("texture1", textureSlot);
+	m_shader->SetUniform1i("texture2", texture2Slot);
 
 	// Unbind again
 	glBindVertexArray(0);
@@ -210,12 +214,15 @@ void Window::Run()
 		// Clear screen with the color specified
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		m_shader->SetUniform1f("mixAmount", mixAmount);
+
 		// Draw rectangle
-		glBindTexture(GL_TEXTURE_2D, m_textureID);
+		m_texture->Bind();
+		m_texture2->Bind();
 		m_shader->Bind();
 		m_vao->Bind();
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
+		m_texture->Unbind();
 
 		// Draw triangle
 		m_shader2->Bind();

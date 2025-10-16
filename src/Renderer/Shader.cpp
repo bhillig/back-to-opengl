@@ -77,6 +77,30 @@ void Shader::Unbind() const
 	glUseProgram(0);
 }
 
+bool Shader::SetUniform1f(const char* name, float value)
+{
+	const int uniformLocation = GetUniformLocation(name);
+	if (uniformLocation == -1) {
+		return false;
+	}
+
+	glUseProgram(m_shaderProgram);
+	glUniform1f(uniformLocation, value);
+	glUseProgram(0);
+	return true;
+}
+
+bool Shader::GetUniform1f(const char* name, float& value)
+{
+	const int uniformLocation = GetUniformLocation(name);
+	if (uniformLocation == -1) {
+		return false;
+	}
+
+	glGetUniformfv(m_shaderProgram, uniformLocation, &value);
+	return true;
+}
+
 bool Shader::SetUniform4f(const char* name, float v0, float v1, float v2, float v3)
 {
 	const int uniformLocation = GetUniformLocation(name);
@@ -86,6 +110,19 @@ bool Shader::SetUniform4f(const char* name, float v0, float v1, float v2, float 
 
 	glUseProgram(m_shaderProgram);
 	glUniform4f(uniformLocation, v0, v1, v2, v3);
+	glUseProgram(0);
+	return true;
+}
+
+bool Shader::SetUniform1i(const char* name, int value)
+{
+	const int uniformLocation = GetUniformLocation(name);
+	if (uniformLocation == -1) {
+		return false;
+	}
+
+	glUseProgram(m_shaderProgram);
+	glUniform1i(uniformLocation, value);
 	glUseProgram(0);
 	return true;
 }

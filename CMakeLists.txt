@@ -27,6 +27,7 @@ set(SOURCES
 	src/Window.cpp
 	src/Renderer/ElementBuffer.cpp
 	src/Renderer/Shader.cpp
+	src/Renderer/Texture.cpp
 	src/Renderer/VertexArray.cpp
 	src/Renderer/VertexBuffer.cpp
 	src/Renderer/VertexBufferLayout.cpp
@@ -36,6 +37,7 @@ set(HEADERS
 	include/Window.h
 	include/Renderer/ElementBuffer.h
 	include/Renderer/Shader.h
+	include/Renderer/Texture.h
 	include/Renderer/VertexArray.h
 	include/Renderer/VertexBuffer.h
 	include/Renderer/VertexBufferLayout.h

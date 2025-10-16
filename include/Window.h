@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include <Renderer/Shader.h>
+#include <Renderer/Texture.h>
 #include <Renderer/VertexArray.h>
 
 #include <memory>
@@ -19,12 +20,17 @@ public:
 
 	GLFWwindow* GetGLFWWindow() const { return m_window; }
 
+	float mixAmount = 0.2f;
+
 private:
 	GLFWwindow* m_window;
 
 	std::unique_ptr<VertexArray> m_vao;
 	std::unique_ptr<VertexArray> m_vao2;
+
 	std::unique_ptr<Shader> m_shader;
 	std::unique_ptr<Shader> m_shader2;
-	unsigned int m_textureID;
+
+	std::unique_ptr<Texture> m_texture;
+	std::unique_ptr<Texture> m_texture2;
 };

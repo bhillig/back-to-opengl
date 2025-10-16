@@ -13,7 +13,13 @@ public:
 
 	void Unbind() const;
 
+	bool SetUniform1f(const char* name, float value);
+
+	bool GetUniform1f(const char* name, float& value);
+
 	bool SetUniform4f(const char* name, float v0, float v1, float v2, float v3);
+
+	bool SetUniform1i(const char* name, int value);
 
 private:
 
