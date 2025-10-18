@@ -21,6 +21,7 @@ FetchContent_MakeAvailable(glfw)
 
 add_subdirectory(external/glad)
 add_subdirectory(external/stb_image)
+# add_subdirectory(external/glm) - HEADER only library so we just need to add include path
 
 set(SOURCES 
 	src/Main.cpp
@@ -48,6 +49,7 @@ add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 target_link_libraries(BackToOpenGL PRIVATE OpenGL::GL glfw glad stb_image)
 
 target_include_directories(BackToOpenGL PRIVATE include)
+target_include_directories(BackToOpenGL PRIVATE external/glm/include) #TODO: Separate glm out to its own project?
 
 # Copy resources to build folder
 add_custom_command(TARGET BackToOpenGL POST_BUILD
