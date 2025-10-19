@@ -26,10 +26,10 @@ private:
 	GLFWwindow* m_window;
 
 	std::unique_ptr<VertexArray> m_vao;
-	std::unique_ptr<VertexArray> m_vao2;
 
 	std::unique_ptr<Shader> m_shader;
 	std::unique_ptr<Shader> m_shader2;
+
 
 	std::unique_ptr<Texture> m_texture;
 	std::unique_ptr<Texture> m_texture2;

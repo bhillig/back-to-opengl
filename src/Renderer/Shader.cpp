@@ -127,6 +127,19 @@ bool Shader::SetUniform1i(const char* name, int value)
 	return true;
 }
 
+bool Shader::SetUniformMatrix4fv(const char* name, float* value)
+{
+	const int uniformLocation = GetUniformLocation(name);
+	if (uniformLocation == -1) {
+		return false;
+	}
+
+	glUseProgram(m_shaderProgram);
+	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, value);
+	glUseProgram(0);
+	return true;
+}
+
 int Shader::GetUniformLocation(const char* name)
 {
 	if (m_uniformCache.contains(name))

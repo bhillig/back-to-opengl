@@ -8,6 +8,10 @@
 
 #include <stb_image.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <algorithm>
 #include <iostream>
 
@@ -126,20 +130,9 @@ void Window::InitScene()
 		-0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f,   0.0f, 1.0f	// Top-left
 	};
 
-	// Vertices of triangle two
-	const float vertices2[] = {
-		0.0f, 0.0f, 0.0f, // Bottom-left
-		0.5f, 0.5f, 0.0f, // Top
-		1.0f, 0.0f, 0.0f // Bottom-right
-	};
-
 	const unsigned int indices[] = {
 		0, 1, 2,
 		2, 3, 0
-	};
-
-	const unsigned int indices2[] = {
-		0, 1, 2,
 	};
 
 	// Create a vertex array object
@@ -167,26 +160,9 @@ void Window::InitScene()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	// Create and bind vao2
-	m_vao2 = std::make_unique<VertexArray>();
-	m_vao2->Bind();
-
-	// Create and bind vbo2
-	VertexBuffer vertexBuffer2(vertices2, sizeof(vertices2));
-	vertexBuffer2.Bind();
-
-	VertexBufferLayout vertexBufferLayout2;
-	vertexBufferLayout2.Push<float>(3); // Position
-
-	m_vao2->Add(vertexBuffer2, vertexBufferLayout2);
-
-	// Create and bind ebo2
-	ElementBuffer elementBuffer2(indices2, sizeof(indices2));
-	elementBuffer2.Bind();
-
-	// Create shaders
+	// Create shader
 	m_shader = std::make_unique<Shader>(kPositionColorAndTexCoordVS, kColorFromTextureMixFS);
-	m_shader2 = std::make_unique<Shader>(kPositionVS, kYellowFS);
+	m_shader2 = std::make_unique<Shader>(kPositionColorAndTexCoordVS, kColorFromTextureMixFS);
 
 	// Create textures
 	const unsigned int textureSlot = 0;
@@ -197,15 +173,18 @@ void Window::InitScene()
 	m_shader->SetUniform1i("texture1", textureSlot);
 	m_shader->SetUniform1i("texture2", texture2Slot);
 
-	// Unbind again
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	m_shader2->SetUniform1i("texture1", textureSlot);
+	m_shader2->SetUniform1i("texture2", texture2Slot);
 }
 
 void Window::Run()
 {
+	float value = 0.0f;
+	float rotationSpeed = 50.f;
+
+	float lastTime = glfwGetTime();
+	float deltaTime = 0.0f;
+
 	while (!glfwWindowShouldClose(m_window))
 	{
 		// Process events
@@ -214,7 +193,29 @@ void Window::Run()
 		// Clear screen with the color specified
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		const float currentTime = glfwGetTime();
+		deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+
+		value += deltaTime;
+		if (value >= 360.f) {
+			value = 0.0f;
+		}
+
+		glm::mat4 trans(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, glm::radians(value * rotationSpeed), glm::vec3(0.0f, 0.0f, 1.0f));
+		m_shader->SetUniformMatrix4fv("u_transform", glm::value_ptr(trans));
+
+		const float scaleFactor = std::abs(std::sin(glfwGetTime()));
+
+		glm::mat4 trans2(1.0f);
+		trans2 = glm::translate(trans2, glm::vec3(-0.5f, 0.5f, 0.0f));
+		trans2 = glm::scale(trans2, glm::vec3(scaleFactor, scaleFactor, 1.0f));
+		m_shader2->SetUniformMatrix4fv("u_transform", glm::value_ptr(trans2));
+
 		m_shader->SetUniform1f("mixAmount", mixAmount);
+		m_shader2->SetUniform1f("mixAmount", mixAmount);
 
 		// Draw rectangle
 		m_texture->Bind();
@@ -222,14 +223,9 @@ void Window::Run()
 		m_shader->Bind();
 		m_vao->Bind();
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		m_texture->Unbind();
-
-		// Draw triangle
 		m_shader2->Bind();
-		m_vao2->Bind();
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-		m_shader2->Unbind();
-		m_vao2->Unbind();
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		m_texture->Unbind();
 
 		// Swap front and back buffers
 		glfwSwapBuffers(m_window);
