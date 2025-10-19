@@ -170,11 +170,11 @@ void Window::InitScene()
 	m_texture = std::make_unique<Texture>(kContainerTexture, textureSlot);
 	m_texture2 = std::make_unique<Texture>(kAwesomeFaceTexture, texture2Slot);
 
-	m_shader->SetUniform1i("texture1", textureSlot);
-	m_shader->SetUniform1i("texture2", texture2Slot);
+	m_shader->SetUniform1i("u_Texture1", textureSlot);
+	m_shader->SetUniform1i("u_Texture2", texture2Slot);
 
-	m_shader2->SetUniform1i("texture1", textureSlot);
-	m_shader2->SetUniform1i("texture2", texture2Slot);
+	m_shader2->SetUniform1i("u_Texture1", textureSlot);
+	m_shader2->SetUniform1i("u_Texture2", texture2Slot);
 }
 
 void Window::Run()
@@ -205,17 +205,17 @@ void Window::Run()
 		glm::mat4 trans(1.0f);
 		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
 		trans = glm::rotate(trans, glm::radians(value * rotationSpeed), glm::vec3(0.0f, 0.0f, 1.0f));
-		m_shader->SetUniformMatrix4fv("u_transform", glm::value_ptr(trans));
+		m_shader->SetUniformMatrix4fv("u_Transform", glm::value_ptr(trans));
 
 		const float scaleFactor = std::abs(std::sin(glfwGetTime()));
 
 		glm::mat4 trans2(1.0f);
 		trans2 = glm::translate(trans2, glm::vec3(-0.5f, 0.5f, 0.0f));
 		trans2 = glm::scale(trans2, glm::vec3(scaleFactor, scaleFactor, 1.0f));
-		m_shader2->SetUniformMatrix4fv("u_transform", glm::value_ptr(trans2));
+		m_shader2->SetUniformMatrix4fv("u_Transform", glm::value_ptr(trans2));
 
-		m_shader->SetUniform1f("mixAmount", mixAmount);
-		m_shader2->SetUniform1f("mixAmount", mixAmount);
+		m_shader->SetUniform1f("u_MixAmount", mixAmount);
+		m_shader2->SetUniform1f("u_MixAmount", mixAmount);
 
 		// Draw rectangle
 		m_texture->Bind();
