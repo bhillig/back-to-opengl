@@ -20,16 +20,17 @@ public:
 
 	GLFWwindow* GetGLFWWindow() const { return m_window; }
 
-	float mixAmount = 0.2f;
+	float m_mixAmount = 1.0f;
+	float m_depth = -3.0f;
 
 private:
 	GLFWwindow* m_window;
+	float m_width;
+	float m_height;
 
 	std::unique_ptr<VertexArray> m_vao;
 
 	std::unique_ptr<Shader> m_shader;
-	std::unique_ptr<Shader> m_shader2;
-
 
 	std::unique_ptr<Texture> m_texture;
 	std::unique_ptr<Texture> m_texture2;

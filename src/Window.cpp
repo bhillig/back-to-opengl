@@ -17,6 +17,7 @@
 
 const std::string kPositionVS = SHADER_DIR + std::string("/position.vertex.glsl");
 const std::string kPositionAndColorVS = SHADER_DIR + std::string("/positionAndColor.vertex.glsl");
+const std::string kPositionAndTexCoordVS = SHADER_DIR + std::string("/positionAndTexCoords.vertex.glsl");
 const std::string kPositionColorAndTexCoordVS = SHADER_DIR + std::string("/positionColorAndTexCoords.vertex.glsl");
 
 const std::string kColorFromVertexFS = SHADER_DIR + std::string("/colorFromVertex.fragment.glsl");
@@ -27,6 +28,8 @@ const std::string kYellowFS = SHADER_DIR + std::string("/yellow.fragment.glsl");
 const std::string kContainerTexture = TEXTURE_DIR + std::string("/container.jpg");
 const std::string kWallTexture = TEXTURE_DIR + std::string("/wall.jpg");
 const std::string kAwesomeFaceTexture = TEXTURE_DIR + std::string("/awesomeface.png");
+const std::string kMorganFreemanTrueTexture = TEXTURE_DIR + std::string("/true.png");
+
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -68,10 +71,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 	}
 	else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		self->mixAmount = std::clamp(self->mixAmount + 0.2f, 0.0f, 1.0f);
+		self->m_depth -= 1.0f;
 	}
 	else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		self->mixAmount = std::clamp(self->mixAmount - 0.2f, 0.0f, 1.0f);
+		self->m_depth += 1.0f;
 	}
 }
 
@@ -81,6 +84,7 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 Window::Window(const char* name, int width, int height)
+	: m_width(width), m_height(height)
 {
 	// Set window hints (OpenGL version and profile)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -89,7 +93,7 @@ Window::Window(const char* name, int width, int height)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Create window with (width, height, name)
-	m_window = glfwCreateWindow(width, height, name, nullptr, nullptr);
+	m_window = glfwCreateWindow(m_width, m_height, name, nullptr, nullptr);
 
 	// Update context
 	glfwMakeContextCurrent(m_window);
@@ -112,6 +116,9 @@ Window::Window(const char* name, int width, int height)
 
 	// Set initial color (Gray)
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+	// Enable depth testing
+	glEnable(GL_DEPTH_TEST);
 }
 
 Window::~Window()
@@ -121,18 +128,50 @@ Window::~Window()
 
 void Window::InitScene()
 {
-	// Vertices of rectangle
-	const float vertices[] = {
-		// Position			// Color			// Texture Coordinates
-		-0.5f, -0.5f, 0.f,	1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Bottom-left
-		0.5f, -0.5f, 0.f,	0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // Bottom-right
-		0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Top-right
-		-0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f,   0.0f, 1.0f	// Top-left
-	};
 
-	const unsigned int indices[] = {
-		0, 1, 2,
-		2, 3, 0
+	float vertices[] = {
+	// Position           // Texture Coordinates
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
 	// Create a vertex array object
@@ -146,35 +185,26 @@ void Window::InitScene()
 	// Specify how our vertex data is formatted
 	VertexBufferLayout vertexBufferLayout;
 	vertexBufferLayout.Push<float>(3); // Position
-	vertexBufferLayout.Push<float>(3); // Color
 	vertexBufferLayout.Push<float>(2); // Texture Coordinates
 
 	m_vao->Add(vertexBuffer, vertexBufferLayout);
 
-	// Create an element buffer object
-	ElementBuffer elementBuffer(indices, sizeof(indices));
-	elementBuffer.Bind();
-
 	// Unbind
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	// Create shader
-	m_shader = std::make_unique<Shader>(kPositionColorAndTexCoordVS, kColorFromTextureMixFS);
-	m_shader2 = std::make_unique<Shader>(kPositionColorAndTexCoordVS, kColorFromTextureMixFS);
+	m_shader = std::make_unique<Shader>(kPositionAndTexCoordVS, kColorFromTextureMixFS);
 
 	// Create textures
 	const unsigned int textureSlot = 0;
 	const unsigned int texture2Slot = 1;
 	m_texture = std::make_unique<Texture>(kContainerTexture, textureSlot);
-	m_texture2 = std::make_unique<Texture>(kAwesomeFaceTexture, texture2Slot);
+	m_texture2 = std::make_unique<Texture>(kMorganFreemanTrueTexture, texture2Slot);
 
 	m_shader->SetUniform1i("u_Texture1", textureSlot);
 	m_shader->SetUniform1i("u_Texture2", texture2Slot);
 
-	m_shader2->SetUniform1i("u_Texture1", textureSlot);
-	m_shader2->SetUniform1i("u_Texture2", texture2Slot);
 }
 
 void Window::Run()
@@ -185,13 +215,26 @@ void Window::Run()
 	float lastTime = glfwGetTime();
 	float deltaTime = 0.0f;
 
+	glm::vec3 cubePositions[] = {
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f,  3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f,  2.0f, -2.5f),
+	glm::vec3(1.5f,  0.2f, -1.5f),
+	glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
 	while (!glfwWindowShouldClose(m_window))
 	{
 		// Process events
 		glfwPollEvents();
 
-		// Clear screen with the color specified
-		glClear(GL_COLOR_BUFFER_BIT);
+		// Clear screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		const float currentTime = glfwGetTime();
 		deltaTime = currentTime - lastTime;
@@ -202,29 +245,31 @@ void Window::Run()
 			value = 0.0f;
 		}
 
-		glm::mat4 trans(1.0f);
-		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-		trans = glm::rotate(trans, glm::radians(value * rotationSpeed), glm::vec3(0.0f, 0.0f, 1.0f));
-		m_shader->SetUniformMatrix4fv("u_Transform", glm::value_ptr(trans));
+		// View
+		glm::mat4 view(1.0f);
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, m_depth)); // Simulate the camera moving back by moving all objects forward
+		m_shader->SetUniformMatrix4fv("u_View", glm::value_ptr(view));
 
-		const float scaleFactor = std::abs(std::sin(glfwGetTime()));
+		// Projection
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), m_width / m_height, 0.1f, 100.f);
+		m_shader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
 
-		glm::mat4 trans2(1.0f);
-		trans2 = glm::translate(trans2, glm::vec3(-0.5f, 0.5f, 0.0f));
-		trans2 = glm::scale(trans2, glm::vec3(scaleFactor, scaleFactor, 1.0f));
-		m_shader2->SetUniformMatrix4fv("u_Transform", glm::value_ptr(trans2));
-
-		m_shader->SetUniform1f("u_MixAmount", mixAmount);
-		m_shader2->SetUniform1f("u_MixAmount", mixAmount);
+		m_shader->SetUniform1f("u_MixAmount", m_mixAmount);
 
 		// Draw rectangle
 		m_texture->Bind();
 		m_texture2->Bind();
-		m_shader->Bind();
 		m_vao->Bind();
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		m_shader2->Bind();
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		for (int i = 0; i < 10; ++i)
+		{
+			// Model
+			glm::mat4 model(1.f);
+			model = glm::translate(model, cubePositions[i]);
+			model = glm::rotate(model, value * glm::radians(rotationSpeed), glm::vec3(0.5f, 1.0f, 0.0f));
+			m_shader->SetUniformMatrix4fv("u_Model", glm::value_ptr(model));
+			m_shader->Bind();
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 		m_texture->Unbind();
 
 		// Swap front and back buffers
