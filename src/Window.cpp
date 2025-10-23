@@ -8,10 +8,6 @@
 
 #include <stb_image.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <algorithm>
 #include <iostream>
 
@@ -30,61 +26,24 @@ const std::string kWallTexture = TEXTURE_DIR + std::string("/wall.jpg");
 const std::string kAwesomeFaceTexture = TEXTURE_DIR + std::string("/awesomeface.png");
 const std::string kMorganFreemanTrueTexture = TEXTURE_DIR + std::string("/true.png");
 
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	// Retrieve the pointer to your Window instance
-	Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
-	if (!self) return;
-
-	// Close window
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-	}
-	// Set background color to red
-	else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	}
-	// Set background color to green
-	else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
-		glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
-	}
-	// Set background color to blue
-	else if (key == GLFW_KEY_B && action == GLFW_PRESS) {
-		glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-	}
-	// Set background color to gray
-	else if (key == GLFW_KEY_O && action == GLFW_PRESS) {
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	}
-	// Toggle wireframe mode
-	else if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-		GLint polygonMode[2];
-		glGetIntegerv(GL_POLYGON_MODE, polygonMode);
-		if (polygonMode[0] == GL_FILL)
-		{
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		}
-		else
-		{
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-	}
-	else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		self->m_depth -= 1.0f;
-	}
-	else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		self->m_depth += 1.0f;
-	}
-}
-
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
+glm::vec3 cubePositions[] = {
+glm::vec3(0.0f,  0.0f,  0.0f),
+glm::vec3(2.0f,  5.0f, -15.0f),
+glm::vec3(-1.5f, -2.2f, -2.5f),
+glm::vec3(-3.8f, -2.0f, -12.3f),
+glm::vec3(2.4f, -0.4f, -3.5f),
+glm::vec3(-1.7f,  3.0f, -7.5f),
+glm::vec3(1.3f, -2.0f, -2.5f),
+glm::vec3(1.5f,  2.0f, -2.5f),
+glm::vec3(1.5f,  0.2f, -1.5f),
+glm::vec3(-1.3f,  1.0f, -1.5f)
+};
 
 Window::Window(const char* name, int width, int height)
-	: m_width(width), m_height(height)
+	: m_width(width), m_height(height),
+	m_cameraPos(0.0f, 0.0f, 3.0f),
+	m_cameraFront(0.0f, 0.0f, -1.0f),
+	m_cameraUp(0.0f, 1.0f, 0.0f)
 {
 	// Set window hints (OpenGL version and profile)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -98,12 +57,14 @@ Window::Window(const char* name, int width, int height)
 	// Update context
 	glfwMakeContextCurrent(m_window);
 
+	// Allows callbacks to access this window class
 	glfwSetWindowUserPointer(m_window, this);
 
 	// Set GLFW callbacks
-	glfwSetKeyCallback(m_window, key_callback);
-	glfwSetFramebufferSizeCallback(m_window, framebuffer_size_callback);
-
+	glfwSetKeyCallback(m_window, Window::KeyCallback);
+	glfwSetCursorPosCallback(m_window, Window::CursorPosCallback);
+	glfwSetFramebufferSizeCallback(m_window, Window::FramebufferSizeCallback);
+	glfwSetScrollCallback(m_window, Window::ScrollCallback);
 
 	// Initialize GLAD
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -111,11 +72,15 @@ Window::Window(const char* name, int width, int height)
 		return;
 	}
 
-	// Initialize viewport
-	glViewport(0, 0, width, height);
+	// Capture mouse cursor
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	// Set initial color (Gray)
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	// Initialize viewport
+	glViewport(0, 0, m_width, m_height);
+
+	// Set initial color
+	const glm::vec4 grayColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClearColor(grayColor.r, grayColor.g, grayColor.b, grayColor.a);
 
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -205,6 +170,12 @@ void Window::InitScene()
 	m_shader->SetUniform1i("u_Texture1", textureSlot);
 	m_shader->SetUniform1i("u_Texture2", texture2Slot);
 
+	// Init camera
+	m_cameraFOV = 45.0f;
+
+	// Start the application with the camera facing the scene
+	m_cameraPitch = 0.0f;
+	m_cameraYaw = -90.f;
 }
 
 void Window::Run()
@@ -212,46 +183,39 @@ void Window::Run()
 	float value = 0.0f;
 	float rotationSpeed = 50.f;
 
-	float lastTime = glfwGetTime();
-	float deltaTime = 0.0f;
 
-	glm::vec3 cubePositions[] = {
-	glm::vec3(0.0f,  0.0f,  0.0f),
-	glm::vec3(2.0f,  5.0f, -15.0f),
-	glm::vec3(-1.5f, -2.2f, -2.5f),
-	glm::vec3(-3.8f, -2.0f, -12.3f),
-	glm::vec3(2.4f, -0.4f, -3.5f),
-	glm::vec3(-1.7f,  3.0f, -7.5f),
-	glm::vec3(1.3f, -2.0f, -2.5f),
-	glm::vec3(1.5f,  2.0f, -2.5f),
-	glm::vec3(1.5f,  0.2f, -1.5f),
-	glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
+
+	float lastTime = glfwGetTime();
 
 	while (!glfwWindowShouldClose(m_window))
 	{
 		// Process events
 		glfwPollEvents();
 
+		ProcessInput();
+
 		// Clear screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		const float currentTime = glfwGetTime();
-		deltaTime = currentTime - lastTime;
+		m_deltaTime = currentTime - lastTime;
 		lastTime = currentTime;
 
-		value += deltaTime;
-		if (value >= 360.f) {
-			value = 0.0f;
-		}
+		value += m_deltaTime;
+
+		m_cameraFront.x = cos(glm::radians(m_cameraYaw)) * cos(glm::radians(m_cameraPitch)); // Note that we convert the angle to radians first
+		m_cameraFront.y = sin(glm::radians(m_cameraPitch));
+		m_cameraFront.z = sin(glm::radians(m_cameraYaw)) * cos(glm::radians(m_cameraPitch));
 
 		// View
-		glm::mat4 view(1.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, m_depth)); // Simulate the camera moving back by moving all objects forward
+		glm::mat4 view;
+		view = glm::lookAt(	glm::vec3(m_cameraPos),					// Camera location
+							glm::vec3(m_cameraPos + m_cameraFront),	// Target location
+							glm::vec3(m_cameraUp));					// World up direction
 		m_shader->SetUniformMatrix4fv("u_View", glm::value_ptr(view));
 
 		// Projection
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), m_width / m_height, 0.1f, 100.f);
+		glm::mat4 projection = glm::perspective(glm::radians(m_cameraFOV), m_width / m_height, 0.1f, 100.f);
 		m_shader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
 
 		m_shader->SetUniform1f("u_MixAmount", m_mixAmount);
@@ -275,4 +239,114 @@ void Window::Run()
 		// Swap front and back buffers
 		glfwSwapBuffers(m_window);
 	}
+}
+
+void Window::ProcessInput()
+{
+	const float cameraSpeed = 5.f;
+	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS) {
+		m_cameraPos += cameraSpeed * m_cameraFront * m_deltaTime;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS) {
+		m_cameraPos -= cameraSpeed * m_cameraFront * m_deltaTime;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS) {
+		m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed * m_deltaTime;
+	}
+	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS) {
+		m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed * m_deltaTime;
+	}
+}
+
+void Window::OnMouseMove(double xPos, double yPos)
+{
+	static bool firstMouse = true;
+	if (firstMouse)
+	{
+		m_lastMouseX = xPos;
+		m_lastMouseY = yPos;
+		firstMouse = false;
+	}
+
+	const float deltaX = xPos - m_lastMouseX;
+	const float deltaY = yPos - m_lastMouseY;
+
+	const float mouseSensitivityHorizontal = 0.1f;
+	const float mouseSensitivityVertical = 0.1f;
+
+	// Update camera yaw
+	m_cameraYaw += deltaX * mouseSensitivityHorizontal;
+
+	// Update camera pitch
+	const float minPitch = -89.f;
+	const float maxPitch = 89.f;
+	m_cameraPitch = std::clamp(m_cameraPitch - deltaY * mouseSensitivityVertical, minPitch, maxPitch); // reversed since y-coordinates range from bottom to top
+
+	// Save last mouse position
+	m_lastMouseX = xPos;
+	m_lastMouseY = yPos;
+}
+
+void Window::OnMouseScroll(double xOffset, double yOffset)
+{
+	const float minCameraFOV = 1.0f;
+	const float maxCameraFOV = 45.0f;
+	m_cameraFOV = std::clamp(m_cameraFOV - static_cast<float>(yOffset), minCameraFOV, maxCameraFOV);
+}
+
+void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	// Retrieve the pointer to your Window instance
+	Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	if (!self) return;
+
+	const float cameraSpeed = 0.05f;
+
+	// Close window
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	}
+	// Set background color to red
+	else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	}
+	// Set background color to green
+	else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
+		glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+	}
+	// Set background color to blue
+	else if (key == GLFW_KEY_B && action == GLFW_PRESS) {
+		glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+	}
+	// Set background color to gray
+	else if (key == GLFW_KEY_O && action == GLFW_PRESS) {
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	}
+	else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		self->m_depth -= 1.0f;
+	}
+	else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+		self->m_depth += 1.0f;
+	}
+}
+
+void Window::CursorPosCallback(GLFWwindow* window, double xPos, double yPos)
+{
+	Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	assert(self);
+
+	self->OnMouseMove(xPos, yPos);
+}
+
+void Window::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
+void Window::ScrollCallback(GLFWwindow* window, double xOffset, double yOffset)
+{
+	Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	assert(self);
+
+	self->OnMouseScroll(xOffset, yOffset);
 }
