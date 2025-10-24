@@ -25,24 +25,28 @@ add_subdirectory(external/stb_image)
 
 set(SOURCES 
 	src/Main.cpp
-	src/Window.cpp
 	src/Renderer/ElementBuffer.cpp
 	src/Renderer/Shader.cpp
 	src/Renderer/Texture.cpp
 	src/Renderer/VertexArray.cpp
 	src/Renderer/VertexBuffer.cpp
 	src/Renderer/VertexBufferLayout.cpp
-	src/Utils/FileUtils.cpp)
+	src/Scene/Camera.cpp
+	src/Utils/FileUtils.cpp
+	src/Window/Window.cpp)
 
 set(HEADERS
-	include/Window.h
+	include/Core/Event.h
+	include/Core/EventDispatcher.h
 	include/Renderer/ElementBuffer.h
 	include/Renderer/Shader.h
 	include/Renderer/Texture.h
 	include/Renderer/VertexArray.h
 	include/Renderer/VertexBuffer.h
 	include/Renderer/VertexBufferLayout.h
-	include/Utils/FileUtils.h)
+	include/Scene/Camera.h
+	include/Utils/FileUtils.h
+	include/Window/Window.h)
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 

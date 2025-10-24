@@ -40,10 +40,7 @@ glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
 Window::Window(const char* name, int width, int height)
-	: m_width(width), m_height(height),
-	m_cameraPos(0.0f, 0.0f, 3.0f),
-	m_cameraFront(0.0f, 0.0f, -1.0f),
-	m_cameraUp(0.0f, 1.0f, 0.0f)
+	: m_width(width), m_height(height)
 {
 	// Set window hints (OpenGL version and profile)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -171,11 +168,10 @@ void Window::InitScene()
 	m_shader->SetUniform1i("u_Texture2", texture2Slot);
 
 	// Init camera
-	m_cameraFOV = 45.0f;
-
-	// Start the application with the camera facing the scene
-	m_cameraPitch = 0.0f;
-	m_cameraYaw = -90.f;
+	const glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
+	const glm::vec3 cameraForward(0.0f, 0.0f, -1.0f);
+	const float cameraFOV = 45.f;
+	m_camera = std::make_unique<Camera>(cameraPos, cameraForward, cameraFOV, m_eventDispatcher);
 }
 
 void Window::Run()
@@ -183,16 +179,12 @@ void Window::Run()
 	float value = 0.0f;
 	float rotationSpeed = 50.f;
 
-
-
 	float lastTime = glfwGetTime();
 
 	while (!glfwWindowShouldClose(m_window))
 	{
 		// Process events
 		glfwPollEvents();
-
-		ProcessInput();
 
 		// Clear screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -203,19 +195,18 @@ void Window::Run()
 
 		value += m_deltaTime;
 
-		m_cameraFront.x = cos(glm::radians(m_cameraYaw)) * cos(glm::radians(m_cameraPitch)); // Note that we convert the angle to radians first
-		m_cameraFront.y = sin(glm::radians(m_cameraPitch));
-		m_cameraFront.z = sin(glm::radians(m_cameraYaw)) * cos(glm::radians(m_cameraPitch));
+		m_camera->Update(m_deltaTime);
 
 		// View
 		glm::mat4 view;
-		view = glm::lookAt(	glm::vec3(m_cameraPos),					// Camera location
-							glm::vec3(m_cameraPos + m_cameraFront),	// Target location
-							glm::vec3(m_cameraUp));					// World up direction
+		view = glm::lookAt(	glm::vec3(m_camera->position()), // Camera location
+							glm::vec3(m_camera->position() + m_camera->forward()), // Target location
+							glm::vec3(0.f, 1.0f, 0.f));	// World up direction
+
 		m_shader->SetUniformMatrix4fv("u_View", glm::value_ptr(view));
 
 		// Projection
-		glm::mat4 projection = glm::perspective(glm::radians(m_cameraFOV), m_width / m_height, 0.1f, 100.f);
+		glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), m_width / m_height, 0.1f, 100.f);
 		m_shader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
 
 		m_shader->SetUniform1f("u_MixAmount", m_mixAmount);
@@ -241,60 +232,11 @@ void Window::Run()
 	}
 }
 
-void Window::ProcessInput()
-{
-
-	const glm::vec3 walkDirection = glm::normalize(glm::vec3(m_cameraFront.x, 0.0f, m_cameraFront.z));
-
-	const float movementSpeed = 5.f;
-	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS) {
-		m_cameraPos += movementSpeed * walkDirection * m_deltaTime;
-	}
-	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS) {
-		m_cameraPos -= movementSpeed * walkDirection * m_deltaTime;
-	}
-	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS) {
-		m_cameraPos -= glm::normalize(glm::cross(walkDirection, m_cameraUp)) * movementSpeed * m_deltaTime;
-	}
-	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS) {
-		m_cameraPos += glm::normalize(glm::cross(walkDirection, m_cameraUp)) * movementSpeed * m_deltaTime;
-	}
-}
-
-void Window::OnMouseMove(double xPos, double yPos)
-{
-	static bool firstMouse = true;
-	if (firstMouse)
-	{
-		m_lastMouseX = xPos;
-		m_lastMouseY = yPos;
-		firstMouse = false;
-	}
-
-	const float deltaX = xPos - m_lastMouseX;
-	const float deltaY = yPos - m_lastMouseY;
-
-	const float mouseSensitivityHorizontal = 0.1f;
-	const float mouseSensitivityVertical = 0.1f;
-
-	// Update camera yaw
-	m_cameraYaw += deltaX * mouseSensitivityHorizontal;
-
-	// Update camera pitch
-	const float minPitch = -89.f;
-	const float maxPitch = 89.f;
-	m_cameraPitch = std::clamp(m_cameraPitch - deltaY * mouseSensitivityVertical, minPitch, maxPitch); // reversed since y-coordinates range from bottom to top
-
-	// Save last mouse position
-	m_lastMouseX = xPos;
-	m_lastMouseY = yPos;
-}
-
 void Window::OnMouseScroll(double xOffset, double yOffset)
 {
 	const float minCameraFOV = 1.0f;
 	const float maxCameraFOV = 45.0f;
-	m_cameraFOV = std::clamp(m_cameraFOV - static_cast<float>(yOffset), minCameraFOV, maxCameraFOV);
+	//m_cameraFOV = std::clamp(m_cameraFOV - static_cast<float>(yOffset), minCameraFOV, maxCameraFOV);
 }
 
 void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -331,6 +273,17 @@ void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 	else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
 		self->m_depth += 1.0f;
 	}
+
+	if (action == GLFW_PRESS)
+	{
+		const Event e(EventType::KeyPressed, 0.0, 0.0, key);
+		self->m_eventDispatcher.Dispatch(e);
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		const Event e(EventType::KeyReleased, 0.0, 0.0, key);
+		self->m_eventDispatcher.Dispatch(e);
+	}
 }
 
 void Window::CursorPosCallback(GLFWwindow* window, double xPos, double yPos)
@@ -338,7 +291,8 @@ void Window::CursorPosCallback(GLFWwindow* window, double xPos, double yPos)
 	Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
 	assert(self);
 
-	self->OnMouseMove(xPos, yPos);
+	const Event e(EventType::MouseMove, xPos, yPos);
+	self->m_eventDispatcher.Dispatch(e);
 }
 
 void Window::FramebufferSizeCallback(GLFWwindow* window, int width, int height)

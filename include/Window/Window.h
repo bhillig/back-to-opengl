@@ -2,9 +2,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <Core/EventDispatcher.h>
+
 #include <Renderer/Shader.h>
 #include <Renderer/Texture.h>
 #include <Renderer/VertexArray.h>
+
+#include <Scene/Camera.h>
 
 #include <memory>
 
@@ -24,21 +28,13 @@ public:
 
 	GLFWwindow* GetGLFWWindow() const { return m_window; }
 
+	EventDispatcher& GetEventDispatcher() { return m_eventDispatcher; }
+
 	float m_mixAmount = 1.0f;
 	float m_depth = -3.0f;
 
-	glm::vec3 m_cameraPos;
-	glm::vec3 m_cameraFront;
-	glm::vec3 m_cameraUp;
-
 private:
 
-	void ProcessInput();
-
-	// Called by CursorPosCallback
-	void OnMouseMove(double xPos, double yPos);
-
-	// Called by CursorPosCallback
 	void OnMouseScroll(double xOffset, double yOffset);
 
 private:
@@ -53,15 +49,12 @@ private:
 	GLFWwindow* m_window;
 	float m_width;
 	float m_height;
+
+	EventDispatcher m_eventDispatcher;
 	
 	float m_deltaTime;
 
-	double m_lastMouseX;
-	double m_lastMouseY;
-
-	float m_cameraFOV;
-	float m_cameraPitch;
-	float m_cameraYaw;
+	std::unique_ptr<Camera> m_camera;
 
 	std::unique_ptr<VertexArray> m_vao;
 
