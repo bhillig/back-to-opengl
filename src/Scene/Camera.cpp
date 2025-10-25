@@ -15,6 +15,7 @@ Camera::Camera(const glm::vec3& pos, const glm::vec3& forward, float fov, EventD
 	, m_backwardPressed(false)
 	, m_leftPressed(false)
 	, m_rightPressed(false)
+	, m_inputEnabled(true)
 {
 	eventDispatcher.Subscribe(EventType::MouseMove, [this](const Event& event) {
 		OnMouseMove(event.x, event.y);
@@ -54,8 +55,20 @@ void Camera::Update(float deltaTime)
 	}
 }
 
+void Camera::EnableInput(bool enabled)
+{
+	m_inputEnabled = enabled;
+}
+
+void Camera::SetFOV(float fov)
+{
+	m_fov = fov;
+}
+
 void Camera::OnMouseMove(double xPos, double yPos)
 {
+	if (!m_inputEnabled) return;
+
 	static double lastX;
 	static double lastY;
 

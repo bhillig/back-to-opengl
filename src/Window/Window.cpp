@@ -8,6 +8,10 @@
 
 #include <stb_image.h>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <algorithm>
 #include <iostream>
 
@@ -85,6 +89,10 @@ Window::Window(const char* name, int width, int height)
 
 Window::~Window()
 {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 	glfwDestroyWindow(m_window);
 }
 
@@ -171,61 +179,42 @@ void Window::InitScene()
 	const glm::vec3 cameraPos(0.0f, 0.0f, 3.0f);
 	const glm::vec3 cameraForward(0.0f, 0.0f, -1.0f);
 	const float cameraFOV = 45.f;
+
 	m_camera = std::make_unique<Camera>(cameraPos, cameraForward, cameraFOV, m_eventDispatcher);
+	m_camera->EnableInput(true);
+
+	// Init ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+
+	// Setup backends
+	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+	ImGui_ImplOpenGL3_Init("#version 460");
 }
 
 void Window::Run()
 {
-	float value = 0.0f;
-	float rotationSpeed = 50.f;
-
-	float lastTime = glfwGetTime();
+	m_value = 0.0f;
+	m_lastTime = glfwGetTime();
 
 	while (!glfwWindowShouldClose(m_window))
 	{
 		// Process events
 		glfwPollEvents();
 
-		// Clear screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// Process ImGui
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
-		const float currentTime = glfwGetTime();
-		m_deltaTime = currentTime - lastTime;
-		lastTime = currentTime;
+		ConstructGUI();
 
-		value += m_deltaTime;
+		RenderScene();
 
-		m_camera->Update(m_deltaTime);
-
-		// View
-		glm::mat4 view;
-		view = glm::lookAt(	glm::vec3(m_camera->position()), // Camera location
-							glm::vec3(m_camera->position() + m_camera->forward()), // Target location
-							glm::vec3(0.f, 1.0f, 0.f));	// World up direction
-
-		m_shader->SetUniformMatrix4fv("u_View", glm::value_ptr(view));
-
-		// Projection
-		glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), m_width / m_height, 0.1f, 100.f);
-		m_shader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
-
-		m_shader->SetUniform1f("u_MixAmount", m_mixAmount);
-
-		// Draw rectangle
-		m_texture->Bind();
-		m_texture2->Bind();
-		m_vao->Bind();
-		for (int i = 0; i < 10; ++i)
-		{
-			// Model
-			glm::mat4 model(1.f);
-			model = glm::translate(model, cubePositions[i]);
-			model = glm::rotate(model, value * glm::radians(rotationSpeed), glm::vec3(0.5f, 1.0f, 0.0f));
-			m_shader->SetUniformMatrix4fv("u_Model", glm::value_ptr(model));
-			m_shader->Bind();
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-		m_texture->Unbind();
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// Swap front and back buffers
 		glfwSwapBuffers(m_window);
@@ -239,6 +228,81 @@ void Window::OnMouseScroll(double xOffset, double yOffset)
 	//m_cameraFOV = std::clamp(m_cameraFOV - static_cast<float>(yOffset), minCameraFOV, maxCameraFOV);
 }
 
+void Window::ToggleInputMode()
+{
+	const int cursorMode = glfwGetInputMode(m_window, GLFW_CURSOR);
+	switch (cursorMode)
+	{
+	case GLFW_CURSOR_DISABLED:
+		glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		m_camera->EnableInput(false);
+		break;
+	case GLFW_CURSOR_NORMAL:
+		glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		m_camera->EnableInput(true);
+		break;
+	default:
+		break;
+	}
+}
+
+void Window::ConstructGUI()
+{
+	float fov = m_camera->fov();
+	ImGui::Begin("Properties");
+	if (ImGui::SliderFloat("Camera FOV", &fov, 1.0f, 120.0f))
+	{
+		m_camera->SetFOV(fov);
+	}
+	ImGui::End();
+}
+
+void Window::RenderScene()
+{
+	const float rotationSpeed = 50.f;
+
+	// Clear screen
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	const float currentTime = glfwGetTime();
+	m_deltaTime = currentTime - m_lastTime;
+	m_lastTime = currentTime;
+
+	m_value += m_deltaTime;
+
+	m_camera->Update(m_deltaTime);
+
+	// View
+	glm::mat4 view;
+	view = glm::lookAt(glm::vec3(m_camera->position()), // Camera location
+		glm::vec3(m_camera->position() + m_camera->forward()), // Target location
+		glm::vec3(0.f, 1.0f, 0.f));	// World up direction
+
+	m_shader->SetUniformMatrix4fv("u_View", glm::value_ptr(view));
+
+	// Projection
+	glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), m_width / m_height, 0.1f, 100.f);
+	m_shader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
+
+	m_shader->SetUniform1f("u_MixAmount", m_mixAmount);
+
+	// Draw rectangle
+	m_texture->Bind();
+	m_texture2->Bind();
+	m_vao->Bind();
+	for (int i = 0; i < 10; ++i)
+	{
+		// Model
+		glm::mat4 model(1.f);
+		model = glm::translate(model, cubePositions[i]);
+		model = glm::rotate(model, m_value * glm::radians(rotationSpeed), glm::vec3(0.5f, 1.0f, 0.0f));
+		m_shader->SetUniformMatrix4fv("u_Model", glm::value_ptr(model));
+		m_shader->Bind();
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
+	m_texture->Unbind();
+}
+
 void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// Retrieve the pointer to your Window instance
@@ -249,7 +313,7 @@ void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 
 	// Close window
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
+		self->ToggleInputMode();
 	}
 	// Set background color to red
 	else if (key == GLFW_KEY_R && action == GLFW_PRESS) {

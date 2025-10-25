@@ -18,6 +18,10 @@ public:
 
 	void Update(float deltaTime);
 
+	void EnableInput(bool enabled);
+
+	void SetFOV(float fov);
+
 private:
 
 	void OnMouseMove(double xPos, double yPos);
@@ -40,4 +44,5 @@ private:
 	bool m_backwardPressed;
 	bool m_leftPressed;
 	bool m_rightPressed;
+	bool m_inputEnabled;
 };

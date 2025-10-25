@@ -39,6 +39,12 @@ private:
 
 private:
 
+	void ToggleInputMode();
+
+	void ConstructGUI();
+
+	void RenderScene();
+
 	// Callbacks
 	static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void CursorPosCallback(GLFWwindow* window, double xPos, double yPos);
@@ -53,6 +59,9 @@ private:
 	EventDispatcher m_eventDispatcher;
 	
 	float m_deltaTime;
+	float m_lastTime;
+
+	float m_value;
 
 	std::unique_ptr<Camera> m_camera;
 
