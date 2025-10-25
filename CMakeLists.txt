@@ -11,6 +11,9 @@ find_package(OpenGL REQUIRED)
 
 include(FetchContent)
 
+# ----------------------------------------------------------
+# GLFW
+# ----------------------------------------------------------
 FetchContent_Declare(
 	glfw
 	GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -19,9 +22,29 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
+# ----------------------------------------------------------
+# Glad
+# ----------------------------------------------------------
 add_subdirectory(external/glad)
+
+# ----------------------------------------------------------
+# stb_image
+# ----------------------------------------------------------
 add_subdirectory(external/stb_image)
-# add_subdirectory(external/glm) - HEADER only library so we just need to add include path
+
+# ----------------------------------------------------------
+# Dear ImGui
+# ----------------------------------------------------------
+add_library(imgui
+    external/imgui/imgui.cpp
+    external/imgui/imgui_draw.cpp
+    external/imgui/imgui_tables.cpp
+    external/imgui/imgui_widgets.cpp
+    external/imgui/backends/imgui_impl_glfw.cpp
+    external/imgui/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(imgui PUBLIC external/imgui external/imgui/backends)
+target_link_libraries(imgui PUBLIC OpenGL::GL glfw)
 
 set(SOURCES 
 	src/Main.cpp
@@ -50,10 +73,14 @@ set(HEADERS
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 
-target_link_libraries(BackToOpenGL PRIVATE OpenGL::GL glfw glad stb_image)
+target_link_libraries(BackToOpenGL PRIVATE OpenGL::GL glfw glad stb_image imgui)
 
 target_include_directories(BackToOpenGL PRIVATE include)
-target_include_directories(BackToOpenGL PRIVATE external/glm/include) #TODO: Separate glm out to its own project?
+
+# ----------------------------------------------------------
+# GLM
+# ----------------------------------------------------------
+target_include_directories(BackToOpenGL PRIVATE external/glm/include)
 
 # Copy resources to build folder
 add_custom_command(TARGET BackToOpenGL POST_BUILD
