@@ -19,8 +19,20 @@ public:
 		m_listeners[type].emplace_back(callback);
 	}
 
+	void SubscribeAll(ListenerCallback callback)
+	{
+		m_globalListeners.emplace_back(callback);
+	}
+
 	void Dispatch(const Event& event)
 	{
+		// Dispatch to global listeners first
+		for (auto& listener : m_globalListeners)
+		{
+			listener(event);
+		}
+
+		// Dispatch to those listening for this event type
 		auto it = m_listeners.find(event.type);
 		if (it == m_listeners.end())
 			return;
@@ -33,4 +45,5 @@ public:
 
 private:
 	std::unordered_map<EventType, std::vector<ListenerCallback>> m_listeners;
+	std::vector<ListenerCallback> m_globalListeners;
 };

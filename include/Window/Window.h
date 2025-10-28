@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -8,13 +9,9 @@
 #include <Renderer/Texture.h>
 #include <Renderer/VertexArray.h>
 
-#include <Scene/Camera.h>
-
 #include <memory>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+class Scene;
 
 class Window
 {
@@ -30,12 +27,11 @@ public:
 
 	EventDispatcher& GetEventDispatcher() { return m_eventDispatcher; }
 
-	float m_mixAmount = 1.0f;
+	float GetWidth() const { return m_width; }
+
+	float GetHeght() const { return m_height; }
+
 	float m_depth = -3.0f;
-
-private:
-
-	void OnMouseScroll(double xOffset, double yOffset);
 
 private:
 
@@ -43,13 +39,10 @@ private:
 
 	void ConstructGUI();
 
-	void RenderScene();
-
 	// Callbacks
 	static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void CursorPosCallback(GLFWwindow* window, double xPos, double yPos);
 	static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
-	static void ScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 
 private:
 	GLFWwindow* m_window;
@@ -61,15 +54,6 @@ private:
 	float m_deltaTime;
 	float m_lastTime;
 
-	float m_value;
-
-	std::unique_ptr<Camera> m_camera;
-
-	std::unique_ptr<VertexArray> m_vao;
-
-	std::unique_ptr<Shader> m_shader;
-
-	std::unique_ptr<Texture> m_texture;
-	std::unique_ptr<Texture> m_texture2;
+	std::unique_ptr<Scene> m_scene;
 
 };

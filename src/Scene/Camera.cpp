@@ -4,141 +4,46 @@
 
 #include <algorithm>
 
-Camera::Camera(const glm::vec3& pos, const glm::vec3& forward, float fov, EventDispatcher& eventDispatcher)
+Camera::Camera(const glm::vec3& pos, float pitch, float yaw, float roll, float fov)
 	: m_position(pos)
-	, m_forward(forward)
-	, m_rotation(glm::vec3(0.f, -90.f, 0.f))
+	, m_pitch(pitch)
+	, m_yaw(yaw)
+	, m_roll(roll)
 	, m_fov(fov)
-	, m_mouseHorizontalSensitivity(0.1f)
-	, m_mouseVerticalSensitivity(0.1f)
-	, m_forwardPressed(false)
-	, m_backwardPressed(false)
-	, m_leftPressed(false)
-	, m_rightPressed(false)
-	, m_inputEnabled(true)
 {
-	eventDispatcher.Subscribe(EventType::MouseMove, [this](const Event& event) {
-		OnMouseMove(event.x, event.y);
-	});
-
-	eventDispatcher.Subscribe(EventType::KeyPressed, [this](const Event& event) {
-		OnKeyPressed(event.key);
-	});
-
-	eventDispatcher.Subscribe(EventType::KeyReleased, [this](const Event& event) {
-		OnKeyReleased(event.key);
-	});
 }
 
-void Camera::Update(float deltaTime)
+glm::vec3 Camera::forward() const
 {
-	// Update movement
-	const glm::vec3 walkDirection = glm::normalize(glm::vec3(m_forward.x, 0.0f, m_forward.z));
-	const float movementSpeed = 5.f;
-	const glm::vec3 upVector = glm::vec3(0.f, 1.0f, 0.f);
-
-	if (m_forwardPressed)
-	{
-		m_position += movementSpeed * walkDirection * deltaTime;
-	}
-	if (m_backwardPressed)
-	{
-		m_position -= movementSpeed * walkDirection * deltaTime;
-	}
-	if (m_leftPressed)
-	{
-		m_position -= glm::normalize(glm::cross(walkDirection, upVector)) * movementSpeed * deltaTime;
-	}
-	if (m_rightPressed)
-	{
-		m_position += glm::normalize(glm::cross(walkDirection, upVector)) * movementSpeed * deltaTime;
-	}
+	glm::vec3 cameraForward(0.f);
+	cameraForward.x = cos(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
+	cameraForward.y = sin(glm::radians(m_pitch));
+	cameraForward.z = sin(glm::radians(m_yaw)) * cos(glm::radians(m_pitch));
+	return cameraForward;
 }
 
-void Camera::EnableInput(bool enabled)
+glm::mat4 Camera::viewMatrix() const
 {
-	m_inputEnabled = enabled;
+	return glm::lookAt(glm::vec3(m_position), // Camera location
+		glm::vec3(m_position + forward()), // Target location
+		glm::vec3(0.f, 1.0f, 0.f));	// World up direction
+}
+
+void Camera::Move(const glm::vec3& offset)
+{
+	m_position += offset;
+}
+
+void Camera::Rotate(float pitchOffset, float yawOffset, float rollOffset)
+{
+	const float minPitch = -89.f;
+	const float maxPitch = 89.f;
+	m_pitch = std::clamp(m_pitch + pitchOffset, minPitch, maxPitch);
+	m_yaw += yawOffset;
+	m_roll += rollOffset;
 }
 
 void Camera::SetFOV(float fov)
 {
 	m_fov = fov;
-}
-
-void Camera::OnMouseMove(double xPos, double yPos)
-{
-	if (!m_inputEnabled) return;
-
-	static double lastX;
-	static double lastY;
-
-	static bool firstEvent = true;
-	if (firstEvent)
-	{
-		lastX = xPos;
-		lastY = yPos;
-		firstEvent = false;
-	}
-
-	const float deltaX = xPos - lastX;
-	const float deltaY = yPos - lastY;
-
-	float& pitch = m_rotation[0];
-	float& yaw = m_rotation[1];
-
-	// Update yaw
-	yaw += deltaX * m_mouseHorizontalSensitivity;
-
-	// Update pitch
-	const float minPitch = -89.f;
-	const float maxPitch = 89.f;
-	pitch = std::clamp(pitch - deltaY * m_mouseVerticalSensitivity, minPitch, maxPitch); // reversed since y-coordinates range from bottom to top
-
-	// Update forward
-	m_forward.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	m_forward.y = sin(glm::radians(pitch));
-	m_forward.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-	lastX = xPos;
-	lastY = yPos;
-}
-
-void Camera::OnKeyPressed(int key)
-{
-	if (key == GLFW_KEY_W)
-	{
-		m_forwardPressed = true;
-	}
-	else if (key == GLFW_KEY_S)
-	{
-		m_backwardPressed = true;
-	}
-	else if (key == GLFW_KEY_A)
-	{
-		m_leftPressed = true;
-	}
-	else if (key == GLFW_KEY_D)
-	{
-		m_rightPressed = true;
-	}
-}
-
-void Camera::OnKeyReleased(int key)
-{
-	if (key == GLFW_KEY_W)
-	{
-		m_forwardPressed = false;
-	}
-	else if (key == GLFW_KEY_S)
-	{
-		m_backwardPressed = false;
-	}
-	else if (key == GLFW_KEY_A)
-	{
-		m_leftPressed = false;
-	}
-	else if (key == GLFW_KEY_D)
-	{
-		m_rightPressed = false;
-	}
 }

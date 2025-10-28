@@ -55,6 +55,9 @@ set(SOURCES
 	src/Renderer/VertexBuffer.cpp
 	src/Renderer/VertexBufferLayout.cpp
 	src/Scene/Camera.cpp
+	src/Scene/CameraController.cpp
+	src/Scene/CubeScene.cpp
+	src/Scene/Scene.cpp
 	src/Utils/FileUtils.cpp
 	src/Window/Window.cpp)
 
@@ -68,6 +71,9 @@ set(HEADERS
 	include/Renderer/VertexBuffer.h
 	include/Renderer/VertexBufferLayout.h
 	include/Scene/Camera.h
+	include/Scene/CameraController.h
+	include/Scene/CubeScene.h
+	include/Scene/Scene.h
 	include/Utils/FileUtils.h
 	include/Window/Window.h)
 
