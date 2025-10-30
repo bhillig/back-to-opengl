@@ -11,15 +11,35 @@
 
 #include <memory>
 
+#include <cassert>
+
 class Scene;
 
-class Window
+class Application
 {
 public:
-	Window(const char* name, int width, int height);
-	~Window();
+	Application(const char* name, int width, int height);
+	~Application();
 
 	void InitScene();
+
+	static void Init(const char* name, int width, int height)
+	{
+		assert(!s_instance && "Application is already created!");
+		s_instance = new Application(name, width, height);
+	}
+
+	static Application* GetApp()
+	{
+		assert(s_instance && "Application has not been created!");
+		return s_instance;
+	}
+
+	static void Shutdown()
+	{
+		delete s_instance;
+		s_instance = nullptr;
+	}
 
 	void Run();
 
@@ -29,7 +49,7 @@ public:
 
 	float GetWidth() const { return m_width; }
 
-	float GetHeght() const { return m_height; }
+	float GetHeight() const { return m_height; }
 
 	float m_depth = -3.0f;
 
@@ -54,6 +74,9 @@ private:
 	float m_deltaTime;
 	float m_lastTime;
 
+	bool m_requestedSceneChange = false;
+
 	std::unique_ptr<Scene> m_scene;
 
+	static Application* s_instance;
 };

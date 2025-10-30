@@ -1,12 +1,11 @@
 #include <Scene/CameraController.h>
 
-#include <Window/Window.h>
+#include <Application.h>
 
 #include <algorithm>
 
-CameraController::CameraController(Window* window, Camera& camera)
+CameraController::CameraController(Camera& camera)
 	: m_camera(camera)
-	, m_window(window)
 	, m_mouseHorizontalSensitivity(0.1f)
 	, m_mouseVerticalSensitivity(0.1f)
 	, m_forwardPressed(false)
@@ -15,15 +14,27 @@ CameraController::CameraController(Window* window, Camera& camera)
 	, m_rightPressed(false)
 	, m_inputEnabled(true)
 {
-	m_window->GetEventDispatcher().Subscribe(EventType::MouseMove, [this](const Event& event) {
+	m_mouseEventHandler = Application::GetApp()->GetEventDispatcher().Subscribe(EventType::MouseMove, [this](const Event& event) {
 		OnMouseMove(event.x, event.y);
 	});
-	m_window->GetEventDispatcher().Subscribe(EventType::KeyPressed, [this](const Event& event) {
+
+	m_keyPressedEventHandler = Application::GetApp()->GetEventDispatcher().Subscribe(EventType::KeyPressed, [this](const Event& event) {
 		OnKeyPressed(event.key);
 	});
-	m_window->GetEventDispatcher().Subscribe(EventType::KeyReleased, [this](const Event& event) {
+
+	m_keyReleasedEventHandler = Application::GetApp()->GetEventDispatcher().Subscribe(EventType::KeyReleased, [this](const Event& event) {
 		OnKeyReleased(event.key);
 	});
+
+	const int cursorMode = glfwGetInputMode(Application::GetApp()->GetGLFWWindow(), GLFW_CURSOR);
+	EnableInput(cursorMode == GLFW_CURSOR_DISABLED);
+}
+
+CameraController::~CameraController()
+{
+	Application::GetApp()->GetEventDispatcher().Unsubscribe(m_mouseEventHandler);
+	Application::GetApp()->GetEventDispatcher().Unsubscribe(m_keyPressedEventHandler);
+	Application::GetApp()->GetEventDispatcher().Unsubscribe(m_keyReleasedEventHandler);
 }
 
 void CameraController::Update(float deltaTime)

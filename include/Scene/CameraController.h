@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Core/EventDispatcher.h>
+
 #include <Scene/Camera.h>
 
 #include <memory>
@@ -13,7 +15,8 @@ class Window;
 class CameraController
 {
 public:
-	CameraController(Window* window, Camera& camera);
+	CameraController(Camera& camera);
+	~CameraController();
 
 	bool inputEnabled() const { return m_inputEnabled; }
 
@@ -30,7 +33,6 @@ protected:
 	void OnKeyReleased(int key);
 
 private:
-	Window* m_window;
 	Camera& m_camera;
 
 	float m_mouseHorizontalSensitivity;
@@ -41,4 +43,8 @@ private:
 	bool m_leftPressed;
 	bool m_rightPressed;
 	bool m_inputEnabled;
+
+	EventHandle m_mouseEventHandler;
+	EventHandle m_keyPressedEventHandler;
+	EventHandle m_keyReleasedEventHandler;
 };

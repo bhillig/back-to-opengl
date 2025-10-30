@@ -1,6 +1,6 @@
 #include <Scene/Scenes/CubeScene.h>
 
-#include <Window/Window.h>
+#include <Application.h>
 
 #include <Scene/CameraController.h>
 
@@ -51,13 +51,15 @@ glm::vec3(1.5f,  0.2f, -1.5f),
 glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
-CubeScene::CubeScene(Window* window)
-	: Scene(window)
+CubeScene::CubeScene()
+	: Scene()
 {
+	OnLoad();
 }
 
 CubeScene::~CubeScene()
 {
+	OnUnload();
 }
 
 void CubeScene::OnLoad()
@@ -146,7 +148,7 @@ void CubeScene::OnLoad()
 	const float cameraFOV = 45.f;
 
 	m_camera = std::make_unique<Camera>(cameraPos, 0.0f, -90.f, 0.0f, cameraFOV);
-	m_cameraController = std::make_unique<CameraController>(m_window, *m_camera);
+	m_cameraController = std::make_unique<CameraController>(*m_camera);
 
 	// Set initial color
 	const glm::vec4 grayColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -174,7 +176,10 @@ void CubeScene::Update(float deltaTime)
 {
 	m_value += deltaTime;
 
-	m_cameraController->Update(deltaTime);
+	if (m_cameraController)
+	{
+		m_cameraController->Update(deltaTime);
+	}
 }
 
 void CubeScene::Render()
@@ -189,7 +194,7 @@ void CubeScene::Render()
 	m_shader->SetUniformMatrix4fv("u_View", glm::value_ptr(view));
 
 	// Projection
-	glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), m_window->GetWidth() / m_window->GetHeght(), 0.1f, 100.f);
+	glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), Application::GetApp()->GetWidth() / Application::GetApp()->GetHeight(), 0.1f, 100.f);
 	m_shader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
 
 	m_shader->SetUniform1f("u_MixAmount", 1.0f);

@@ -8,15 +8,19 @@
 
 #include <memory>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 class Camera;
 class CameraController;
 
-class CubeScene final : public Scene
+class LightingDemoScene final : public Scene
 {
 public:
 
-	CubeScene(Window* window);
-	~CubeScene() override;
+	LightingDemoScene();
+	~LightingDemoScene() override;
 
 	void OnLoad() override;
 
@@ -36,15 +40,19 @@ protected:
 
 private:
 
-	float m_value = 0.0f;
+	glm::vec3 m_lightingPosition;
+	glm::vec3 m_objectPosition;
+
+	glm::vec3 m_lightSourceColor;
+	glm::vec3 m_objectColor;
 
 	std::unique_ptr<Camera> m_camera;
 	std::unique_ptr<CameraController> m_cameraController;
 
 	std::unique_ptr<VertexArray> m_vao;
+	std::unique_ptr<VertexArray> m_lightSourceVAO;
 
-	std::unique_ptr<Shader> m_shader;
 
-	std::unique_ptr<Texture> m_texture;
-	std::unique_ptr<Texture> m_texture2;
+	std::unique_ptr<Shader> m_lightSourceShader;
+	std::unique_ptr<Shader> m_colorFromLightSourceShader;
 };

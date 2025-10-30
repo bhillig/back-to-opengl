@@ -17,6 +17,8 @@ public:
 
 	bool GetUniform1f(const char* name, float& value);
 
+	bool SetUniform3f(const char* name, float v0, float v1, float v2);
+
 	bool SetUniform4f(const char* name, float v0, float v1, float v2, float v3);
 
 	bool SetUniform1i(const char* name, int value);

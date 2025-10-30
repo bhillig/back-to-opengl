@@ -47,6 +47,7 @@ target_include_directories(imgui PUBLIC external/imgui external/imgui/backends)
 target_link_libraries(imgui PUBLIC OpenGL::GL glfw)
 
 set(SOURCES 
+	src/Application.cpp
 	src/Main.cpp
 	src/Renderer/ElementBuffer.cpp
 	src/Renderer/Shader.cpp
@@ -56,12 +57,13 @@ set(SOURCES
 	src/Renderer/VertexBufferLayout.cpp
 	src/Scene/Camera.cpp
 	src/Scene/CameraController.cpp
-	src/Scene/CubeScene.cpp
 	src/Scene/Scene.cpp
-	src/Utils/FileUtils.cpp
-	src/Window/Window.cpp)
+	src/Scene/Scenes/CubeScene.cpp
+	src/Scene/Scenes/LightingDemoScene.cpp
+	src/Utils/FileUtils.cpp)
 
 set(HEADERS
+	include/Application.h
 	include/Core/Event.h
 	include/Core/EventDispatcher.h
 	include/Renderer/ElementBuffer.h
@@ -72,10 +74,10 @@ set(HEADERS
 	include/Renderer/VertexBufferLayout.h
 	include/Scene/Camera.h
 	include/Scene/CameraController.h
-	include/Scene/CubeScene.h
 	include/Scene/Scene.h
-	include/Utils/FileUtils.h
-	include/Window/Window.h)
+	include/Scene/Scenes/CubeScene.h
+	include/Scene/Scenes/LightingDemoScene.h
+	include/Utils/FileUtils.h)
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 

@@ -101,6 +101,19 @@ bool Shader::GetUniform1f(const char* name, float& value)
 	return true;
 }
 
+bool Shader::SetUniform3f(const char* name, float v0, float v1, float v2)
+{
+	const int uniformLocation = GetUniformLocation(name);
+	if (uniformLocation == -1) {
+		return false;
+	}
+
+	glUseProgram(m_shaderProgram);
+	glUniform3f(uniformLocation, v0, v1, v2);
+	glUseProgram(0);
+	return true;
+}
+
 bool Shader::SetUniform4f(const char* name, float v0, float v1, float v2, float v3)
 {
 	const int uniformLocation = GetUniformLocation(name);

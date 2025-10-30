@@ -1,4 +1,4 @@
-#include <Window/Window.h>
+#include <Application.h>
 
 #include <Renderer/ElementBuffer.h>
 #include <Renderer/Shader.h>
@@ -6,7 +6,8 @@
 #include <Renderer/VertexBuffer.h>
 #include <Renderer/VertexBufferLayout.h>
 
-#include <Scene/CubeScene.h>
+#include <Scene/Scenes/CubeScene.h>
+#include <Scene/Scenes/LightingDemoScene.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -19,9 +20,13 @@
 #include <algorithm>
 #include <iostream>
 
+Application* Application::s_instance = nullptr;
 
-Window::Window(const char* name, int width, int height)
-	: m_width(width), m_height(height)
+Application::Application(const char* name, int width, int height)
+	: m_width(width)
+	, m_height(height)
+	, m_deltaTime(0.f)
+	, m_lastTime(0.f)
 {
 	// Set window hints (OpenGL version and profile)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -39,9 +44,9 @@ Window::Window(const char* name, int width, int height)
 	glfwSetWindowUserPointer(m_window, this);
 
 	// Set GLFW callbacks
-	glfwSetKeyCallback(m_window, Window::KeyCallback);
-	glfwSetCursorPosCallback(m_window, Window::CursorPosCallback);
-	glfwSetFramebufferSizeCallback(m_window, Window::FramebufferSizeCallback);
+	glfwSetKeyCallback(m_window, Application::KeyCallback);
+	glfwSetCursorPosCallback(m_window, Application::CursorPosCallback);
+	glfwSetFramebufferSizeCallback(m_window, Application::FramebufferSizeCallback);
 
 	// Initialize GLAD
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -59,7 +64,7 @@ Window::Window(const char* name, int width, int height)
 	glEnable(GL_DEPTH_TEST);
 }
 
-Window::~Window()
+Application::~Application()
 {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
@@ -68,7 +73,7 @@ Window::~Window()
 	glfwDestroyWindow(m_window);
 }
 
-void Window::InitScene()
+void Application::InitScene()
 {
 	// Init ImGui
 	IMGUI_CHECKVERSION();
@@ -81,16 +86,17 @@ void Window::InitScene()
 	ImGui_ImplOpenGL3_Init("#version 460");
 
 	// Set scene
-	m_scene = std::make_unique<CubeScene>(this);
-	m_scene->OnLoad();
+	m_scene = std::make_unique<LightingDemoScene>();
 }
 
-void Window::Run()
+void Application::Run()
 {
 	m_lastTime = glfwGetTime();
 
 	while (!glfwWindowShouldClose(m_window))
 	{
+		m_requestedSceneChange = false;
+
 		// Calculate deltaTime
 		const float currentTime = glfwGetTime();
 		m_deltaTime = currentTime - m_lastTime;
@@ -108,7 +114,10 @@ void Window::Run()
 		ConstructGUI();
 
 		// Simulate the current scene
-		m_scene->Simulate(m_deltaTime);
+		if (!m_requestedSceneChange) 
+		{
+			m_scene->Simulate(m_deltaTime);
+		}
 
 		// Render ImGui
 		ImGui::Render();
@@ -119,7 +128,7 @@ void Window::Run()
 	}
 }
 
-void Window::ToggleInputMode()
+void Application::ToggleInputMode()
 {
 	const int cursorMode = glfwGetInputMode(m_window, GLFW_CURSOR);
 	switch (cursorMode)
@@ -135,18 +144,29 @@ void Window::ToggleInputMode()
 	}
 }
 
-void Window::ConstructGUI()
+void Application::ConstructGUI()
 {
 	ImGui::Begin("Properties");
 	m_scene->ConstructGUI();
+	ImGui::Text("Scenes:");
+	if (ImGui::Button("Lighting Demo"))
+	{
+		m_scene = std::make_unique<LightingDemoScene>();
+		m_requestedSceneChange = true;
+	}
+	if (ImGui::Button("Cube Scene"))
+	{
+		m_scene = std::make_unique<CubeScene>();
+		m_requestedSceneChange = true;
+	}
 	ImGui::End();
 }
 
 
-void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+void Application::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// Retrieve the pointer to your Window instance
-	Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	Application* self = static_cast<Application*>(glfwGetWindowUserPointer(window));
 	if (!self) return;
 
 	const float cameraSpeed = 0.05f;
@@ -190,16 +210,16 @@ void Window::KeyCallback(GLFWwindow* window, int key, int scancode, int action, 
 	}
 }
 
-void Window::CursorPosCallback(GLFWwindow* window, double xPos, double yPos)
+void Application::CursorPosCallback(GLFWwindow* window, double xPos, double yPos)
 {
-	Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	Application* self = static_cast<Application*>(glfwGetWindowUserPointer(window));
 	assert(self);
 
 	const Event e(EventType::MouseMove, xPos, yPos);
 	self->m_eventDispatcher.Dispatch(e);
 }
 
-void Window::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
+void Application::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }

@@ -2,14 +2,12 @@
 
 #include <Core/EventDispatcher.h>
 
-class Window;
-
 class Scene
 {
 public:
-	Scene(Window* window);
+	Scene();
 
-	virtual ~Scene() = default;
+	virtual ~Scene();
 
 	// Called when the application loads the scene
 	virtual void OnLoad();
@@ -31,21 +29,18 @@ protected:
 	// Called every frame to render the scene
 	virtual void Render() = 0;
 
-// Event callbacks
 protected:
 
+	// Event callbacks
 	virtual void OnKeyPressed(int key) {}
-
 	virtual void OnKeyReleased(int key) {}
-
 	virtual void OnMouseMove(double xPos, double yPos) {}
-
-protected:
-	Window* m_window;
 
 private:
 
 	// Process events
 	void OnEvent(const Event& event);
+
+	EventHandle m_eventHandle;
 
 };

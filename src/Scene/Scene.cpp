@@ -1,25 +1,30 @@
 #include <Scene/Scene.h>
 
-#include <Window/Window.h>
+#include <Application.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-Scene::Scene(Window* window)
-	: m_window(window)
+Scene::Scene()
+	: m_eventHandle({ 0 })
+{
+}
+
+Scene::~Scene()
 {
 }
 
 void Scene::OnLoad()
 {
-	m_window->GetEventDispatcher().SubscribeAll([this](const Event& event) {
+	m_eventHandle = Application::GetApp()->GetEventDispatcher().SubscribeAll([this](const Event& event) {
 		OnEvent(event);
 		});
 }
 
 void Scene::OnUnload()
 {
+	Application::GetApp()->GetEventDispatcher().UnsubscribeAll(m_eventHandle);
 }
 
 void Scene::Simulate(float deltaTime, unsigned int timeSteps /* = 1*/)

@@ -6,6 +6,17 @@
 #include <unordered_map>
 #include <vector>
 
+struct EventHandle
+{
+	size_t id;
+};
+
+struct EventListener
+{
+	size_t id;
+	std::function<void(const Event& e)> callback;
+};
+
 class EventDispatcher
 {
 	using ListenerCallback = std::function<void(const Event& e)>;
@@ -14,14 +25,45 @@ public:
 	EventDispatcher() = default;
 	~EventDispatcher() = default;
 
-	void Subscribe(EventType type, ListenerCallback callback)
+	EventHandle Subscribe(EventType type, ListenerCallback callback)
 	{
-		m_listeners[type].emplace_back(callback);
+		EventListener listener{ m_nextId++, callback };
+		m_listeners[type].emplace_back(listener);
+		return { listener.id };
 	}
 
-	void SubscribeAll(ListenerCallback callback)
+	EventHandle SubscribeAll(ListenerCallback callback)
 	{
-		m_globalListeners.emplace_back(callback);
+		EventListener listener{ m_nextId++, callback };
+		m_globalListeners.emplace_back(listener);
+		return { listener.id };
+	}
+
+	void Unsubscribe(EventHandle handle)
+	{
+		for (auto& [type, listeners] : m_listeners)
+		{
+			auto it = std::find_if(listeners.begin(), listeners.end(), [this, handle](const EventListener& listener) {
+				return handle.id == listener.id;
+				});
+
+			if (it != listeners.end())
+			{
+				listeners.erase(it);
+			}
+		}
+	}
+
+	void UnsubscribeAll(EventHandle handle)
+	{
+		auto it = std::find_if(m_globalListeners.begin(), m_globalListeners.end(), [this, handle](const EventListener& listener) {
+			return handle.id == listener.id;
+			});
+
+		if (it != m_globalListeners.end())
+		{
+			m_globalListeners.erase(it);
+		}
 	}
 
 	void Dispatch(const Event& event)
@@ -29,7 +71,7 @@ public:
 		// Dispatch to global listeners first
 		for (auto& listener : m_globalListeners)
 		{
-			listener(event);
+			listener.callback(event);
 		}
 
 		// Dispatch to those listening for this event type
@@ -39,11 +81,12 @@ public:
 
 		for (auto& listener : it->second)
 		{
-			listener(event);
+			listener.callback(event);
 		}
 	}
 
 private:
-	std::unordered_map<EventType, std::vector<ListenerCallback>> m_listeners;
-	std::vector<ListenerCallback> m_globalListeners;
+	std::unordered_map<EventType, std::vector<EventListener>> m_listeners;
+	std::vector<EventListener> m_globalListeners;
+	size_t m_nextId = 0;
 };

@@ -2,16 +2,15 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-#include <Window/Window.h>
+#include <Application.h>
 
 int main(int argc, char* argv[])
 {
     if (!glfwInit()) return -1;
 
-	const int WINDOW_WIDTH = 1280;
-	const int WINDOW_HEIGHT = 720;
+	Application::Init("OpenGL App", 1920, 1080);
 
-	Window window("Back to OpenGL", WINDOW_WIDTH, WINDOW_HEIGHT);
+	Application* app = Application::GetApp();
 
 	// Query OpenGL version
 	const GLubyte* version = glGetString(GL_VERSION);
@@ -22,9 +21,11 @@ int main(int argc, char* argv[])
 	std::cout << renderer << std::endl;
 	std::cout << vendor << std::endl;
 
-	window.InitScene();
+	app->InitScene();
 
-	window.Run();
+	app->Run();
+
+	Application::Shutdown();
 
     glfwTerminate();
     return 0;
