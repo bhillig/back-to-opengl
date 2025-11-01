@@ -42,7 +42,9 @@ private:
 	bool m_backwardPressed;
 	bool m_leftPressed;
 	bool m_rightPressed;
+
 	bool m_inputEnabled;
+	bool m_firstMouseMoveEvent;
 
 	EventHandle m_mouseEventHandler;
 	EventHandle m_keyPressedEventHandler;

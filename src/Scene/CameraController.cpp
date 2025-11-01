@@ -13,6 +13,7 @@ CameraController::CameraController(Camera& camera)
 	, m_leftPressed(false)
 	, m_rightPressed(false)
 	, m_inputEnabled(true)
+	, m_firstMouseMoveEvent(true)
 {
 	m_mouseEventHandler = Application::GetApp()->GetEventDispatcher().Subscribe(EventType::MouseMove, [this](const Event& event) {
 		OnMouseMove(event.x, event.y);
@@ -70,6 +71,12 @@ void CameraController::Update(float deltaTime)
 void CameraController::EnableInput(bool enabled)
 {
 	m_inputEnabled = enabled;
+
+	// If we disabled input - reset mouse move event
+	if (!m_inputEnabled)
+	{
+		m_firstMouseMoveEvent = true;
+	}
 }
 
 void CameraController::OnMouseMove(double xPos, double yPos)
@@ -79,12 +86,11 @@ void CameraController::OnMouseMove(double xPos, double yPos)
 	static double lastX;
 	static double lastY;
 
-	static bool firstEvent = true;
-	if (firstEvent)
+	if (m_firstMouseMoveEvent)
 	{
 		lastX = xPos;
 		lastY = yPos;
-		firstEvent = false;
+		m_firstMouseMoveEvent = false;
 	}
 
 	const float deltaX = xPos - lastX;
