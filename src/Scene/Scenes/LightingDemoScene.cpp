@@ -15,6 +15,7 @@
 
 // Vertex Shaders
 const std::string kPositionVS = SHADER_DIR + std::string("/position.vertex.glsl");
+const std::string kPositionAndNormalVS = SHADER_DIR + std::string("/positionAndNormal.vertex.glsl");
 const std::string kPositionAndColorVS = SHADER_DIR + std::string("/positionAndColor.vertex.glsl");
 const std::string kPositionAndTexCoordVS = SHADER_DIR + std::string("/positionAndTexCoords.vertex.glsl");
 const std::string kPositionColorAndTexCoordVS = SHADER_DIR + std::string("/positionColorAndTexCoords.vertex.glsl");
@@ -30,6 +31,7 @@ const std::string kWhiteFS = SHADER_DIR + std::string("/white.fragment.glsl");
 
 LightingDemoScene::LightingDemoScene()
 	: Scene()
+	, m_value(0.f)
 {
 	OnLoad();
 }
@@ -43,94 +45,49 @@ void LightingDemoScene::OnLoad()
 {
 	Scene::OnLoad();
 
-	float lightSourceVertices[] = {
-	// Positions
-	-0.5f, -0.5f, -0.5f,
-	 0.5f, -0.5f, -0.5f,
-	 0.5f,  0.5f, -0.5f,
-	 0.5f,  0.5f, -0.5f,
-	-0.5f,  0.5f, -0.5f,
-	-0.5f, -0.5f, -0.5f,
-
-	-0.5f, -0.5f,  0.5f,
-	 0.5f, -0.5f,  0.5f,
-	 0.5f,  0.5f,  0.5f,
-	 0.5f,  0.5f,  0.5f,
-	-0.5f,  0.5f,  0.5f,
-	-0.5f, -0.5f,  0.5f,
-
-	-0.5f,  0.5f,  0.5f,
-	-0.5f,  0.5f, -0.5f,
-	-0.5f, -0.5f, -0.5f,
-	-0.5f, -0.5f, -0.5f,
-	-0.5f, -0.5f,  0.5f,
-	-0.5f,  0.5f,  0.5f,
-
-	 0.5f,  0.5f,  0.5f,
-	 0.5f,  0.5f, -0.5f,
-	 0.5f, -0.5f, -0.5f,
-	 0.5f, -0.5f, -0.5f,
-	 0.5f, -0.5f,  0.5f,
-	 0.5f,  0.5f,  0.5f,
-
-	-0.5f, -0.5f, -0.5f,
-	 0.5f, -0.5f, -0.5f,
-	 0.5f, -0.5f,  0.5f,
-	 0.5f, -0.5f,  0.5f,
-	-0.5f, -0.5f,  0.5f,
-	-0.5f, -0.5f, -0.5f,
-
-	-0.5f,  0.5f, -0.5f,
-	 0.5f,  0.5f, -0.5f,
-	 0.5f,  0.5f,  0.5f,
-	 0.5f,  0.5f,  0.5f,
-	-0.5f,  0.5f,  0.5f,
-	-0.5f,  0.5f, -0.5f
-	};
-
 	float objectVertices[] = {
-		// Position           // Texture Coordinates
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		// Positions		  // Normals
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, // Front-face
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f, // Back-face
+		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, // Left-face
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, // Right-face
+		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, // Bottom-face
+		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // Top-face
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
 
 	// Create a vertex array object
@@ -144,7 +101,7 @@ void LightingDemoScene::OnLoad()
 	// Specify how our vertex data is formatted
 	VertexBufferLayout vertexBufferLayout;
 	vertexBufferLayout.Push<float>(3); // Position
-	vertexBufferLayout.Push<float>(2); // Texture Coordinates
+	vertexBufferLayout.Push<float>(3); // Normal
 
 	m_vao->Add(vertexBuffer, vertexBufferLayout);
 
@@ -152,17 +109,10 @@ void LightingDemoScene::OnLoad()
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	// Light source does the same thing as object
 	m_lightSourceVAO = std::make_unique<VertexArray>();
 	m_lightSourceVAO->Bind();
-
-	VertexBuffer lightSourceVertexBuffer(lightSourceVertices, sizeof(lightSourceVertices));
-	lightSourceVertexBuffer.Bind();
-
-	// Specify how our light source vertex data is formatted
-	VertexBufferLayout lightSourceVertexBufferLayout;
-	lightSourceVertexBufferLayout.Push<float>(3); // Position
-
-	m_lightSourceVAO->Add(lightSourceVertexBuffer, lightSourceVertexBufferLayout);
+	m_lightSourceVAO->Add(vertexBuffer, vertexBufferLayout);
 
 	// Unbind
 	glBindVertexArray(0);
@@ -170,7 +120,7 @@ void LightingDemoScene::OnLoad()
 
 	// Create shaders
 	m_lightSourceShader = std::make_unique<Shader>(kPositionVS, kColorFromUniformFS);
-	m_colorFromLightSourceShader = std::make_unique<Shader>(kPositionVS, kColorFromLightSourceFS);
+	m_colorFromLightSourceShader = std::make_unique<Shader>(kPositionAndNormalVS, kColorFromLightSourceFS);
 
 	// Init camera
 	const glm::vec3 cameraPos(1.0f, 0.0f, 4.0f);
@@ -178,13 +128,13 @@ void LightingDemoScene::OnLoad()
 	const float cameraFOV = 45.f;
 
 	// Set light source position
-	m_lightingPosition = glm::vec3( 2, 1, -3);
+	m_lightingPosition = glm::vec3( 0, 1, -3);
 
 	// Set light source color
 	m_lightSourceColor = glm::vec3(1.f, 1.f, 1.f);
 
 	// Set object position
-	m_objectPosition = glm::vec3(-1.5f, 0.f, -1.f);
+	m_objectPosition = glm::vec3(-1.5f, -1.f, -1.f);
 
 	// Set object color
 	m_objectColor = glm::vec3(1.f, 0.f, 0.f);
@@ -237,11 +187,13 @@ void LightingDemoScene::ConstructGUI()
 void LightingDemoScene::Update(float deltaTime)
 {
 	m_cameraController->Update(deltaTime);
+
+	m_value += deltaTime;
 }
 
 void LightingDemoScene::Render()
 {
-	const float rotationSpeed = 50.f;
+	const float rotationSpeed = 45.f;
 
 	// Clear screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -260,12 +212,15 @@ void LightingDemoScene::Render()
 
 	m_colorFromLightSourceShader->SetUniform3f("u_Color", m_objectColor.r, m_objectColor.g, m_objectColor.b);
 	m_colorFromLightSourceShader->SetUniform3f("u_LightSourceColor", m_lightSourceColor.r, m_lightSourceColor.g, m_lightSourceColor.b);
+	m_colorFromLightSourceShader->SetUniform3f("u_LightSourcePos", m_lightingPosition.x, m_lightingPosition.y, m_lightingPosition.z);
+	m_colorFromLightSourceShader->SetUniform3f("u_ViewPos", m_camera->position().x, m_camera->position().y, m_camera->position().z);
 
 
 	// Light source model
 	{
 		glm::mat4 model(1.f);
 		model = glm::translate(model, m_lightingPosition);
+		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 		m_lightSourceShader->SetUniformMatrix4fv("u_Model", glm::value_ptr(model));
 		m_lightSourceShader->Bind();
 		m_vao->Bind();
@@ -276,6 +231,7 @@ void LightingDemoScene::Render()
 	{
 		glm::mat4 model(1.f);
 		model = glm::translate(model, m_objectPosition);
+		model = glm::rotate(model, m_value * glm::radians(rotationSpeed), glm::vec3(0.f, 1.0f, 0.0f));
 		m_colorFromLightSourceShader->SetUniformMatrix4fv("u_Model", glm::value_ptr(model));
 		m_colorFromLightSourceShader->Bind();
 		m_lightSourceVAO->Bind();

@@ -46,6 +46,8 @@ private:
 	glm::vec3 m_lightSourceColor;
 	glm::vec3 m_objectColor;
 
+	float m_value;
+
 	std::unique_ptr<Camera> m_camera;
 	std::unique_ptr<CameraController> m_cameraController;
 
