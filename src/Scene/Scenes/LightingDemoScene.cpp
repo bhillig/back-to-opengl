@@ -122,13 +122,24 @@ void LightingDemoScene::OnLoad()
 	m_lightSourceShader = std::make_unique<Shader>(kPositionVS, kColorFromUniformFS);
 	m_colorFromLightSourceShader = std::make_unique<Shader>(kPositionAndNormalVS, kColorFromLightSourceFS);
 
+	// Set material properties on the object	
+	m_colorFromLightSourceShader->SetUniform3f("u_Material.ambient", 1.0f, 0.5f, 0.31f);
+	m_colorFromLightSourceShader->SetUniform3f("u_Material.diffuse", 1.0f, 0.5f, 0.31f);
+	m_colorFromLightSourceShader->SetUniform3f("u_Material.specular", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform1f("u_Material.shininess", 32.f);
+
+	// Set light source properties
+	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.ambient", 0.2f, 0.2f, 0.2f);
+	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.diffuse", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.specular", 1.f, 1.f, 1.f);
+
 	// Init camera
 	const glm::vec3 cameraPos(1.0f, 0.0f, 4.0f);
 	const glm::vec3 cameraForward(0.0f, 0.0f, -1.0f);
 	const float cameraFOV = 45.f;
 
 	// Set light source position
-	m_lightingPosition = glm::vec3( 0, 1, -3);
+	m_lightingPosition = glm::vec3( 0, 0, 0);
 
 	// Set light source color
 	m_lightSourceColor = glm::vec3(1.f, 1.f, 1.f);
@@ -193,7 +204,7 @@ void LightingDemoScene::Update(float deltaTime)
 
 void LightingDemoScene::Render()
 {
-	const float rotationSpeed = 45.f;
+	const float rotationSpeed = 0.f;
 
 	// Clear screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -210,11 +221,8 @@ void LightingDemoScene::Render()
 
 	m_lightSourceShader->SetUniform4f("u_Color", m_lightSourceColor.r, m_lightSourceColor.g, m_lightSourceColor.b, 1.f);
 
-	m_colorFromLightSourceShader->SetUniform3f("u_Color", m_objectColor.r, m_objectColor.g, m_objectColor.b);
-	m_colorFromLightSourceShader->SetUniform3f("u_LightSourceColor", m_lightSourceColor.r, m_lightSourceColor.g, m_lightSourceColor.b);
-	m_colorFromLightSourceShader->SetUniform3f("u_LightSourcePos", m_lightingPosition.x, m_lightingPosition.y, m_lightingPosition.z);
+	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.position", m_lightingPosition.x, m_lightingPosition.y, m_lightingPosition.z);
 	m_colorFromLightSourceShader->SetUniform3f("u_ViewPos", m_camera->position().x, m_camera->position().y, m_camera->position().z);
-
 
 	// Light source model
 	{
