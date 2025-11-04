@@ -54,7 +54,11 @@ private:
 	std::unique_ptr<VertexArray> m_vao;
 	std::unique_ptr<VertexArray> m_lightSourceVAO;
 
-
 	std::unique_ptr<Shader> m_lightSourceShader;
 	std::unique_ptr<Shader> m_colorFromLightSourceShader;
+
+	std::unique_ptr<Texture> m_crateTexture;
+	std::unique_ptr<Texture> m_crateSpecularTexture;
+
+	int m_lightType;
 };

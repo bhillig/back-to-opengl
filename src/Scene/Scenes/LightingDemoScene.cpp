@@ -16,8 +16,8 @@
 // Vertex Shaders
 const std::string kPositionVS = SHADER_DIR + std::string("/position.vertex.glsl");
 const std::string kPositionAndNormalVS = SHADER_DIR + std::string("/positionAndNormal.vertex.glsl");
-const std::string kPositionAndColorVS = SHADER_DIR + std::string("/positionAndColor.vertex.glsl");
 const std::string kPositionAndTexCoordVS = SHADER_DIR + std::string("/positionAndTexCoords.vertex.glsl");
+const std::string kPositionNormalAndTexCoordVS = SHADER_DIR + std::string("/positionNormalAndTexCoords.vertex.glsl");
 const std::string kPositionColorAndTexCoordVS = SHADER_DIR + std::string("/positionColorAndTexCoords.vertex.glsl");
 
 // Fragment Shaders
@@ -28,6 +28,27 @@ const std::string kColorFromLightSourceFS = SHADER_DIR + std::string("/colorFrom
 const std::string kColorFromUniformFS = SHADER_DIR + std::string("/colorFromUniform.fragment.glsl");
 const std::string kYellowFS = SHADER_DIR + std::string("/yellow.fragment.glsl");
 const std::string kWhiteFS = SHADER_DIR + std::string("/white.fragment.glsl");
+
+// Textures
+const std::string kCrateTexture = TEXTURE_DIR + std::string("/crate.png");
+const std::string kCrateSpecularTexture = TEXTURE_DIR + std::string("/crate_specular.png");
+
+glm::vec3 lightingCubePositions[] = {
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f,  3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f,  2.0f, -2.5f),
+	glm::vec3(1.5f,  0.2f, -1.5f),
+	glm::vec3(-1.3f,  1.0f, -1.5f)
+};
+
+const int LIGHT_TYPE_DIRECTION = 0;
+const int LIGHT_TYPE_POINT = 1;
+const int LIGHT_TYPE_SPOT = 2;
 
 LightingDemoScene::LightingDemoScene()
 	: Scene()
@@ -45,49 +66,50 @@ void LightingDemoScene::OnLoad()
 {
 	Scene::OnLoad();
 
+
 	float objectVertices[] = {
-		// Positions		  // Normals
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, // Front-face
-		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		// positions          // normals           // texture coords
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f, // Back-face
-		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, // Left-face
-		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, // Right-face
-		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, // Bottom-face
-		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, // Top-face
-		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
 
 	// Create a vertex array object
@@ -102,6 +124,7 @@ void LightingDemoScene::OnLoad()
 	VertexBufferLayout vertexBufferLayout;
 	vertexBufferLayout.Push<float>(3); // Position
 	vertexBufferLayout.Push<float>(3); // Normal
+	vertexBufferLayout.Push<float>(2); // Texture Coordinates
 
 	m_vao->Add(vertexBuffer, vertexBufferLayout);
 
@@ -120,32 +143,43 @@ void LightingDemoScene::OnLoad()
 
 	// Create shaders
 	m_lightSourceShader = std::make_unique<Shader>(kPositionVS, kColorFromUniformFS);
-	m_colorFromLightSourceShader = std::make_unique<Shader>(kPositionAndNormalVS, kColorFromLightSourceFS);
+	m_colorFromLightSourceShader = std::make_unique<Shader>(kPositionNormalAndTexCoordVS, kColorFromLightSourceFS);
+
+	// Init crate texture
+	const int crateTexureSlot = 0;
+	const int crateSpecularTextureSlot = 1;
+	m_crateTexture = std::make_unique<Texture>(kCrateTexture, crateTexureSlot);
+	m_crateSpecularTexture = std::make_unique<Texture>(kCrateSpecularTexture, crateSpecularTextureSlot);
 
 	// Set material properties on the object	
-	m_colorFromLightSourceShader->SetUniform3f("u_Material.ambient", 1.0f, 0.5f, 0.31f);
-	m_colorFromLightSourceShader->SetUniform3f("u_Material.diffuse", 1.0f, 0.5f, 0.31f);
-	m_colorFromLightSourceShader->SetUniform3f("u_Material.specular", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform1i("u_Material.diffuse", crateTexureSlot);
+	m_colorFromLightSourceShader->SetUniform1i("u_Material.specular", crateSpecularTextureSlot);
 	m_colorFromLightSourceShader->SetUniform1f("u_Material.shininess", 32.f);
 
 	// Set light source properties
+	m_lightType = LIGHT_TYPE_DIRECTION;
+
 	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.ambient", 0.2f, 0.2f, 0.2f);
 	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.diffuse", 0.5f, 0.5f, 0.5f);
 	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.specular", 1.f, 1.f, 1.f);
 
+	m_colorFromLightSourceShader->SetUniform1f("u_LightSource.constant", 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_LightSource.linear", 0.09f);
+	m_colorFromLightSourceShader->SetUniform1f("u_LightSource.quadratic", 0.032f);
+
 	// Init camera
-	const glm::vec3 cameraPos(1.0f, 0.0f, 4.0f);
+	const glm::vec3 cameraPos(0.0f, 0.0f, 4.0f);
 	const glm::vec3 cameraForward(0.0f, 0.0f, -1.0f);
 	const float cameraFOV = 45.f;
 
 	// Set light source position
-	m_lightingPosition = glm::vec3( 0, 0, 0);
+	m_lightingPosition = glm::vec3( 0, 0, -2.f);
 
 	// Set light source color
 	m_lightSourceColor = glm::vec3(1.f, 1.f, 1.f);
 
 	// Set object position
-	m_objectPosition = glm::vec3(-1.5f, -1.f, -1.f);
+	m_objectPosition = glm::vec3(0.f, -1.f, 0.5f);
 
 	// Set object color
 	m_objectColor = glm::vec3(1.f, 0.f, 0.f);
@@ -183,15 +217,11 @@ void LightingDemoScene::ConstructGUI()
 	{
 		m_lightingPosition = glm::vec3(lightingPos[0], lightingPos[1], lightingPos[2]);
 	}
-	float lightSourceColor[3]{ m_lightSourceColor.x, m_lightSourceColor.y, m_lightSourceColor.z };
-	if (ImGui::ColorPicker3("Light Source Color", lightSourceColor))
+	int lightType = m_lightType;
+	const char* lightingTypes[] = {"Directional", "Point", "Spotlight"};
+	if (ImGui::Combo("Light Type", &lightType, lightingTypes, IM_ARRAYSIZE(lightingTypes)))
 	{
-		m_lightSourceColor = glm::vec3(lightSourceColor[0], lightSourceColor[1], lightSourceColor[2]);
-	}
-	float objectColor[3]{ m_objectColor.x, m_objectColor.y, m_objectColor.z };
-	if (ImGui::ColorPicker3("Object Color", objectColor))
-	{
-		m_objectColor = glm::vec3(objectColor[0], objectColor[1], objectColor[2]);
+		m_lightType = lightType;
 	}
 }
 
@@ -221,10 +251,29 @@ void LightingDemoScene::Render()
 
 	m_lightSourceShader->SetUniform4f("u_Color", m_lightSourceColor.r, m_lightSourceColor.g, m_lightSourceColor.b, 1.f);
 
-	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.position", m_lightingPosition.x, m_lightingPosition.y, m_lightingPosition.z);
+	m_colorFromLightSourceShader->SetUniform1i("u_LightSource.type", m_lightType);
+
+	if (m_lightType == LIGHT_TYPE_SPOT)
+	{
+		m_colorFromLightSourceShader->SetUniform3f("u_LightSource.position", m_camera->position().x, m_camera->position().y, m_camera->position().z);
+		m_colorFromLightSourceShader->SetUniform3f("u_LightSource.direction", m_camera->forward().x, m_camera->forward().y, m_camera->forward().z);
+		m_colorFromLightSourceShader->SetUniform1f("u_LightSource.innerCutOff", glm::cos(glm::radians(12.5f)));
+		m_colorFromLightSourceShader->SetUniform1f("u_LightSource.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+	}
+	else if (m_lightType == LIGHT_TYPE_DIRECTION)
+	{
+		m_colorFromLightSourceShader->SetUniform3f("u_LightSource.direction", -0.1f, -1.0f, -0.2f);
+	}
+	else if (m_lightType == LIGHT_TYPE_POINT)
+	{
+		m_colorFromLightSourceShader->SetUniform3f("u_LightSource.position", m_lightingPosition.x, m_lightingPosition.y, m_lightingPosition.z);
+	}
+
 	m_colorFromLightSourceShader->SetUniform3f("u_ViewPos", m_camera->position().x, m_camera->position().y, m_camera->position().z);
 
-	// Light source model
+	// If we are a point light draw the light source model
+	if (m_lightType == LIGHT_TYPE_POINT)
 	{
 		glm::mat4 model(1.f);
 		model = glm::translate(model, m_lightingPosition);
@@ -235,16 +284,24 @@ void LightingDemoScene::Render()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
 
-	// Object affected by light source
+	// Objects affected by the light source
+	m_lightSourceVAO->Bind();
+	m_crateTexture->Bind();
+	m_crateSpecularTexture->Bind();
+	for (unsigned int i = 0; i < 10; i++)
 	{
-		glm::mat4 model(1.f);
-		model = glm::translate(model, m_objectPosition);
-		model = glm::rotate(model, m_value * glm::radians(rotationSpeed), glm::vec3(0.f, 1.0f, 0.0f));
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, lightingCubePositions[i]);
+		float angle = 20.0f * i;
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 		m_colorFromLightSourceShader->SetUniformMatrix4fv("u_Model", glm::value_ptr(model));
 		m_colorFromLightSourceShader->Bind();
-		m_lightSourceVAO->Bind();
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 	}
+	m_lightSourceVAO->Unbind();
+	m_crateTexture->Unbind();
+	m_crateSpecularTexture->Unbind();
+
 }
 
 void LightingDemoScene::OnKeyPressed(int key)
