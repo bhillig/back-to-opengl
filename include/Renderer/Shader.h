@@ -23,6 +23,8 @@ public:
 
 	bool SetUniform1i(const char* name, int value);
 
+	bool SetUniform1b(const char* name, bool value);
+
 	bool SetUniformMatrix4fv(const char* name, float* value);
 
 private:

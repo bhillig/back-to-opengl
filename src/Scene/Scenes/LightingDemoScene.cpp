@@ -46,9 +46,12 @@ glm::vec3 lightingCubePositions[] = {
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
-const int LIGHT_TYPE_DIRECTION = 0;
-const int LIGHT_TYPE_POINT = 1;
-const int LIGHT_TYPE_SPOT = 2;
+glm::vec3 pointLightPositions[] = {
+	glm::vec3(0.7f,  0.2f,  2.0f),
+	glm::vec3(2.3f, -3.3f, -4.0f),
+	glm::vec3(-4.0f,  2.0f, -12.0f),
+	glm::vec3(0.0f,  0.0f, -3.0f)
+};
 
 LightingDemoScene::LightingDemoScene()
 	: Scene()
@@ -151,29 +154,13 @@ void LightingDemoScene::OnLoad()
 	m_crateTexture = std::make_unique<Texture>(kCrateTexture, crateTexureSlot);
 	m_crateSpecularTexture = std::make_unique<Texture>(kCrateSpecularTexture, crateSpecularTextureSlot);
 
-	// Set material properties on the object	
-	m_colorFromLightSourceShader->SetUniform1i("u_Material.diffuse", crateTexureSlot);
-	m_colorFromLightSourceShader->SetUniform1i("u_Material.specular", crateSpecularTextureSlot);
-	m_colorFromLightSourceShader->SetUniform1f("u_Material.shininess", 32.f);
-
-	// Set light source properties
-	m_lightType = LIGHT_TYPE_DIRECTION;
-
-	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.ambient", 0.2f, 0.2f, 0.2f);
-	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.diffuse", 0.5f, 0.5f, 0.5f);
-	m_colorFromLightSourceShader->SetUniform3f("u_LightSource.specular", 1.f, 1.f, 1.f);
-
-	m_colorFromLightSourceShader->SetUniform1f("u_LightSource.constant", 1.f);
-	m_colorFromLightSourceShader->SetUniform1f("u_LightSource.linear", 0.09f);
-	m_colorFromLightSourceShader->SetUniform1f("u_LightSource.quadratic", 0.032f);
-
 	// Init camera
 	const glm::vec3 cameraPos(0.0f, 0.0f, 4.0f);
 	const glm::vec3 cameraForward(0.0f, 0.0f, -1.0f);
 	const float cameraFOV = 45.f;
 
 	// Set light source position
-	m_lightingPosition = glm::vec3( 0, 0, -2.f);
+	m_lightingPosition = glm::vec3(0, 0, -2.f);
 
 	// Set light source color
 	m_lightSourceColor = glm::vec3(1.f, 1.f, 1.f);
@@ -186,6 +173,56 @@ void LightingDemoScene::OnLoad()
 
 	m_camera = std::make_unique<Camera>(cameraPos, 0.0f, -90.f, 0.0f, cameraFOV);
 	m_cameraController = std::make_unique<CameraController>(*m_camera);
+
+	// Set material properties on the object	
+	m_colorFromLightSourceShader->SetUniform1i("u_Material.diffuse", crateTexureSlot);
+	m_colorFromLightSourceShader->SetUniform1i("u_Material.specular", crateSpecularTextureSlot);
+	m_colorFromLightSourceShader->SetUniform1f("u_Material.shininess", 32.f);
+
+	// Set directional light properties
+	m_colorFromLightSourceShader->SetUniform3f("u_DirectionalLight.direction", -0.1f, -1.0f, -0.2f);
+	m_colorFromLightSourceShader->SetUniform3f("u_DirectionalLight.ambient", 0.2f, 0.2f, 0.2f);
+	m_colorFromLightSourceShader->SetUniform3f("u_DirectionalLight.diffuse", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform3f("u_DirectionalLight.specular", 1.f, 1.f, 1.f);
+
+	// Set Point light properties
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[0].ambient", 0.2f, 0.2f, 0.2f);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[0].diffuse", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[0].specular", 1.f, 1.f, 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[0].constant", 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[0].linear", 0.09f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[0].quadratic", 0.032f);
+
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[1].ambient", 0.2f, 0.2f, 0.2f);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[1].diffuse", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[1].specular", 1.f, 1.f, 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[1].constant", 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[1].linear", 0.09f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[1].quadratic", 0.032f);
+
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[2].ambient", 0.2f, 0.2f, 0.2f);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[2].diffuse", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[2].specular", 1.f, 1.f, 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[2].constant", 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[2].linear", 0.09f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[2].quadratic", 0.032f);
+
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[3].ambient", 0.2f, 0.2f, 0.2f);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[3].diffuse", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[3].specular", 1.f, 1.f, 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[3].constant", 1.f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[3].linear", 0.09f);
+	m_colorFromLightSourceShader->SetUniform1f("u_PointLights[3].quadratic", 0.032f);
+
+	// Set Spot Light properties
+	m_colorFromLightSourceShader->SetUniform1f("u_SpotLight.innerCutOff", glm::cos(glm::radians(12.5f)));
+	m_colorFromLightSourceShader->SetUniform1f("u_SpotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+	m_colorFromLightSourceShader->SetUniform3f("u_SpotLight.ambient", 0.2f, 0.2f, 0.2f);
+	m_colorFromLightSourceShader->SetUniform3f("u_SpotLight.diffuse", 0.5f, 0.5f, 0.5f);
+	m_colorFromLightSourceShader->SetUniform3f("u_SpotLight.specular", 1.f, 1.f, 1.f);
+
+	// Set flashlight off
+	m_flashlightOn = false;
 
 	// Set initial color
 	const glm::vec4 blackColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -212,16 +249,14 @@ void LightingDemoScene::ConstructGUI()
 	{
 		m_objectPosition = glm::vec3(objectPos[0], objectPos[1], objectPos[2]);
 	}
-	float lightingPos[3]{m_lightingPosition.x, m_lightingPosition.y, m_lightingPosition.z};
-	if (ImGui::SliderFloat3("Lighting Position", lightingPos, -5.f, 5.f))
+	for (int i = 0; i < 4; ++i)
 	{
-		m_lightingPosition = glm::vec3(lightingPos[0], lightingPos[1], lightingPos[2]);
-	}
-	int lightType = m_lightType;
-	const char* lightingTypes[] = {"Directional", "Point", "Spotlight"};
-	if (ImGui::Combo("Light Type", &lightType, lightingTypes, IM_ARRAYSIZE(lightingTypes)))
-	{
-		m_lightType = lightType;
+		float lightingPos[3]{ pointLightPositions[i].x, pointLightPositions[i].y, pointLightPositions[i].z };
+		std::string lightingText = "Lighting Position " + std::to_string(i);
+		if (ImGui::SliderFloat3(lightingText.c_str(), lightingPos, -5.f, 5.f))
+		{
+			pointLightPositions[i] = glm::vec3(lightingPos[0], lightingPos[1], lightingPos[2]);
+		}
 	}
 }
 
@@ -251,32 +286,24 @@ void LightingDemoScene::Render()
 
 	m_lightSourceShader->SetUniform4f("u_Color", m_lightSourceColor.r, m_lightSourceColor.g, m_lightSourceColor.b, 1.f);
 
-	m_colorFromLightSourceShader->SetUniform1i("u_LightSource.type", m_lightType);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[0].position", pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[1].position", pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[2].position", pointLightPositions[2].x, pointLightPositions[2].y, pointLightPositions[2].z);
+	m_colorFromLightSourceShader->SetUniform3f("u_PointLights[3].position", pointLightPositions[3].x, pointLightPositions[3].y, pointLightPositions[3].z);
 
-	if (m_lightType == LIGHT_TYPE_SPOT)
-	{
-		m_colorFromLightSourceShader->SetUniform3f("u_LightSource.position", m_camera->position().x, m_camera->position().y, m_camera->position().z);
-		m_colorFromLightSourceShader->SetUniform3f("u_LightSource.direction", m_camera->forward().x, m_camera->forward().y, m_camera->forward().z);
-		m_colorFromLightSourceShader->SetUniform1f("u_LightSource.innerCutOff", glm::cos(glm::radians(12.5f)));
-		m_colorFromLightSourceShader->SetUniform1f("u_LightSource.outerCutOff", glm::cos(glm::radians(17.5f)));
+	m_colorFromLightSourceShader->SetUniform3f("u_SpotLight.position", m_camera->position().x, m_camera->position().y, m_camera->position().z);
+	m_colorFromLightSourceShader->SetUniform3f("u_SpotLight.direction", m_camera->forward().x, m_camera->forward().y, m_camera->forward().z);
 
-	}
-	else if (m_lightType == LIGHT_TYPE_DIRECTION)
-	{
-		m_colorFromLightSourceShader->SetUniform3f("u_LightSource.direction", -0.1f, -1.0f, -0.2f);
-	}
-	else if (m_lightType == LIGHT_TYPE_POINT)
-	{
-		m_colorFromLightSourceShader->SetUniform3f("u_LightSource.position", m_lightingPosition.x, m_lightingPosition.y, m_lightingPosition.z);
-	}
+	m_colorFromLightSourceShader->SetUniform1b("u_UseSpotLight", m_flashlightOn);
 
 	m_colorFromLightSourceShader->SetUniform3f("u_ViewPos", m_camera->position().x, m_camera->position().y, m_camera->position().z);
 
-	// If we are a point light draw the light source model
-	if (m_lightType == LIGHT_TYPE_POINT)
+	// Draw four point lights
+	const int numberOfPointLights = sizeof(pointLightPositions) / sizeof(pointLightPositions[0]);
+	for (int i = 0; i < numberOfPointLights; ++i)
 	{
 		glm::mat4 model(1.f);
-		model = glm::translate(model, m_lightingPosition);
+		model = glm::translate(model, pointLightPositions[i]);
 		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 		m_lightSourceShader->SetUniformMatrix4fv("u_Model", glm::value_ptr(model));
 		m_lightSourceShader->Bind();
@@ -288,7 +315,9 @@ void LightingDemoScene::Render()
 	m_lightSourceVAO->Bind();
 	m_crateTexture->Bind();
 	m_crateSpecularTexture->Bind();
-	for (unsigned int i = 0; i < 10; i++)
+
+	const int numberOfCubes = sizeof(lightingCubePositions) / sizeof(lightingCubePositions[0]);
+	for (unsigned int i = 0; i < numberOfCubes; i++)
 	{
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, lightingCubePositions[i]);
@@ -309,5 +338,9 @@ void LightingDemoScene::OnKeyPressed(int key)
 	if (key == GLFW_KEY_ESCAPE)
 	{
 		m_cameraController->EnableInput(!m_cameraController->inputEnabled());
+	}
+	if (key == GLFW_KEY_F)
+	{
+		m_flashlightOn = !m_flashlightOn;
 	}
 }

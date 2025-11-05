@@ -140,6 +140,12 @@ bool Shader::SetUniform1i(const char* name, int value)
 	return true;
 }
 
+bool Shader::SetUniform1b(const char* name, bool value)
+{
+	// Bools are the same as ints in OpenGL
+	return SetUniform1i(name, value);
+}
+
 bool Shader::SetUniformMatrix4fv(const char* name, float* value)
 {
 	const int uniformLocation = GetUniformLocation(name);

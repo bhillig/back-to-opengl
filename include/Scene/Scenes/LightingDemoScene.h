@@ -60,5 +60,5 @@ private:
 	std::unique_ptr<Texture> m_crateTexture;
 	std::unique_ptr<Texture> m_crateSpecularTexture;
 
-	int m_lightType;
+	bool m_flashlightOn;
 };
