@@ -46,6 +46,11 @@ add_library(imgui
 target_include_directories(imgui PUBLIC external/imgui external/imgui/backends)
 target_link_libraries(imgui PUBLIC OpenGL::GL glfw)
 
+# ----------------------------------------------------------
+# assimp - Open-Asset-Importer-Library
+# ----------------------------------------------------------
+add_subdirectory(external/assimp)
+
 set(SOURCES 
 	src/Application.cpp
 	src/Main.cpp
@@ -81,7 +86,7 @@ set(HEADERS
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
 
-target_link_libraries(BackToOpenGL PRIVATE OpenGL::GL glfw glad stb_image imgui)
+target_link_libraries(BackToOpenGL PRIVATE OpenGL::GL glfw glad stb_image imgui assimp)
 
 target_include_directories(BackToOpenGL PRIVATE include)
 
