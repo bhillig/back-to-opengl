@@ -115,6 +115,7 @@ void Application::Run()
 		ConstructGUI();
 
 		// Simulate the current scene
+		// TODO: Hacky fix for now - should implement a more robust scene manager
 		if (!m_requestedSceneChange) 
 		{
 			m_scene->Simulate(m_deltaTime);
@@ -175,33 +176,9 @@ void Application::KeyCallback(GLFWwindow* window, int key, int scancode, int act
 	Application* self = static_cast<Application*>(glfwGetWindowUserPointer(window));
 	if (!self) return;
 
-	const float cameraSpeed = 0.05f;
-
-	// Close window
+	// TODO: Implement an input layer system to properly handle ImGui + 3D scene mouse events
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		self->ToggleInputMode();
-	}
-	// Set background color to red
-	else if (key == GLFW_KEY_R && action == GLFW_PRESS) {
-		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-	}
-	// Set background color to green
-	else if (key == GLFW_KEY_G && action == GLFW_PRESS) {
-		glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
-	}
-	// Set background color to blue
-	else if (key == GLFW_KEY_B && action == GLFW_PRESS) {
-		glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-	}
-	// Set background color to gray
-	else if (key == GLFW_KEY_O && action == GLFW_PRESS) {
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	}
-	else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		self->m_depth -= 1.0f;
-	}
-	else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		self->m_depth += 1.0f;
 	}
 
 	if (action == GLFW_PRESS)

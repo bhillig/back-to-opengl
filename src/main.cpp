@@ -12,15 +12,6 @@ int main(int argc, char* argv[])
 
 	Application* app = Application::GetApp();
 
-	// Query OpenGL version
-	const GLubyte* version = glGetString(GL_VERSION);
-	const GLubyte* renderer = glGetString(GL_RENDERER);
-	const GLubyte* vendor = glGetString(GL_VENDOR);
-
-	std::cout << version << std::endl;
-	std::cout << renderer << std::endl;
-	std::cout << vendor << std::endl;
-
 	app->InitScene();
 
 	app->Run();
