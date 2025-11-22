@@ -3,14 +3,13 @@
 #include <stb_image.h>
 #include <cassert>
 
-Texture::Texture(const std::string& filepath, unsigned int slot)
-	: m_slot(slot)
+Texture::Texture(const std::string& filepath, int slot)
 {
 	stbi_set_flip_vertically_on_load(true);
 
 	// Create and bind texture
 	glGenTextures(1, &m_rendererID);
-	glActiveTexture(GL_TEXTURE0 + m_slot);
+	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, m_rendererID);
 
 	// Set texture parameters
@@ -39,9 +38,9 @@ Texture::~Texture()
 	glDeleteTextures(1, &m_rendererID);
 }
 
-void Texture::Bind() const
+void Texture::Bind(int slot) const
 {
-	glActiveTexture(GL_TEXTURE0 + m_slot);
+	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, m_rendererID);
 }
 

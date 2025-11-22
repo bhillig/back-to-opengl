@@ -6,16 +6,15 @@
 class Texture
 {
 public:
-	Texture(const std::string& filepath, unsigned int slot = 0);
+	Texture(const std::string& filepath, int slot = 0);
 	~Texture();
 
-	void Bind() const;
+	void Bind(int slot = 0) const;
 
 	void Unbind() const;
 
 private:
 	unsigned int m_rendererID;
-	unsigned int m_slot;
 	int m_width;
 	int m_height;
 	int m_numberOfColorChannels;
