@@ -12,8 +12,28 @@ VertexArray::VertexArray()
 
 VertexArray::~VertexArray()
 {
-	glDeleteVertexArrays(1, &m_rendererID);
+	if (m_rendererID != 0) 
+	{
+		glDeleteVertexArrays(1, &m_rendererID);
+	}
 }
+
+VertexArray::VertexArray(VertexArray&& other) noexcept : m_rendererID(other.m_rendererID)
+{
+	other.m_rendererID = 0; // prevent deletion
+}
+
+VertexArray& VertexArray::operator=(VertexArray&& other) noexcept
+{
+	if (this != &other)
+	{
+		glDeleteVertexArrays(1, &m_rendererID); // delete current
+		m_rendererID = other.m_rendererID;              // steal ID
+		other.m_rendererID = 0;
+	}
+	return *this;
+}
+
 
 void VertexArray::Add(const VertexBuffer& buffer, const VertexBufferLayout& layout)
 {

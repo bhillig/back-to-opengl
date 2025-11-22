@@ -8,6 +8,8 @@ class VertexArray
 public:
 	VertexArray();
 	~VertexArray();
+	VertexArray(VertexArray&& other) noexcept;
+	VertexArray& operator=(VertexArray&& other) noexcept;
 
 	void Add(const VertexBuffer& buffer, const VertexBufferLayout& layout);
 

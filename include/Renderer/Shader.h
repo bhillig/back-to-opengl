@@ -29,8 +29,8 @@ public:
 
 private:
 
-	int GetUniformLocation(const char* name);
+	int GetUniformLocation(const std::string& name);
 
 	unsigned int m_shaderProgram;
-	std::unordered_map<const char*, int> m_uniformCache;
+	std::unordered_map<std::string, int> m_uniformCache;
 };

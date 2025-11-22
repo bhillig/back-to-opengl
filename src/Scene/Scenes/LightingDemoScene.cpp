@@ -33,6 +33,9 @@ const std::string kWhiteFS = SHADER_DIR + std::string("/white.fragment.glsl");
 const std::string kCrateTexture = TEXTURE_DIR + std::string("/crate.png");
 const std::string kCrateSpecularTexture = TEXTURE_DIR + std::string("/crate_specular.png");
 
+const int kCrateDiffuseTexureSlot = 0;
+const int kCrateSpecularTextureSlot = 1;
+
 glm::vec3 lightingCubePositions[] = {
 	glm::vec3(0.0f,  0.0f,  0.0f),
 	glm::vec3(2.0f,  5.0f, -15.0f),
@@ -149,10 +152,8 @@ void LightingDemoScene::OnLoad()
 	m_colorFromLightSourceShader = std::make_unique<Shader>(kPositionNormalAndTexCoordVS, kColorFromLightSourceFS);
 
 	// Init crate texture
-	const int crateTexureSlot = 0;
-	const int crateSpecularTextureSlot = 1;
-	m_crateTexture = std::make_unique<Texture>(kCrateTexture, crateTexureSlot);
-	m_crateSpecularTexture = std::make_unique<Texture>(kCrateSpecularTexture, crateSpecularTextureSlot);
+	m_crateTexture = std::make_unique<Texture>(kCrateTexture, kCrateDiffuseTexureSlot);
+	m_crateSpecularTexture = std::make_unique<Texture>(kCrateSpecularTexture, kCrateSpecularTextureSlot);
 
 	// Init camera
 	const glm::vec3 cameraPos(0.0f, 0.0f, 4.0f);
@@ -175,8 +176,8 @@ void LightingDemoScene::OnLoad()
 	m_cameraController = std::make_unique<CameraController>(*m_camera);
 
 	// Set material properties on the object	
-	m_colorFromLightSourceShader->SetUniform1i("u_Material.diffuse", crateTexureSlot);
-	m_colorFromLightSourceShader->SetUniform1i("u_Material.specular", crateSpecularTextureSlot);
+	m_colorFromLightSourceShader->SetUniform1i("u_Material.diffuse", kCrateDiffuseTexureSlot);
+	m_colorFromLightSourceShader->SetUniform1i("u_Material.specular", kCrateSpecularTextureSlot);
 	m_colorFromLightSourceShader->SetUniform1f("u_Material.shininess", 32.f);
 
 	// Set directional light properties
@@ -313,8 +314,8 @@ void LightingDemoScene::Render()
 
 	// Objects affected by the light source
 	m_lightSourceVAO->Bind();
-	m_crateTexture->Bind();
-	m_crateSpecularTexture->Bind();
+	m_crateTexture->Bind(kCrateDiffuseTexureSlot);
+	m_crateSpecularTexture->Bind(kCrateSpecularTextureSlot);
 
 	const int numberOfCubes = sizeof(lightingCubePositions) / sizeof(lightingCubePositions[0]);
 	for (unsigned int i = 0; i < numberOfCubes; i++)
@@ -330,7 +331,6 @@ void LightingDemoScene::Render()
 	m_lightSourceVAO->Unbind();
 	m_crateTexture->Unbind();
 	m_crateSpecularTexture->Unbind();
-
 }
 
 void LightingDemoScene::OnKeyPressed(int key)

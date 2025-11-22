@@ -86,7 +86,6 @@ bool Shader::SetUniform1f(const char* name, float value)
 
 	glUseProgram(m_shaderProgram);
 	glUniform1f(uniformLocation, value);
-	glUseProgram(0);
 	return true;
 }
 
@@ -110,7 +109,6 @@ bool Shader::SetUniform3f(const char* name, float v0, float v1, float v2)
 
 	glUseProgram(m_shaderProgram);
 	glUniform3f(uniformLocation, v0, v1, v2);
-	glUseProgram(0);
 	return true;
 }
 
@@ -123,7 +121,6 @@ bool Shader::SetUniform4f(const char* name, float v0, float v1, float v2, float 
 
 	glUseProgram(m_shaderProgram);
 	glUniform4f(uniformLocation, v0, v1, v2, v3);
-	glUseProgram(0);
 	return true;
 }
 
@@ -136,7 +133,6 @@ bool Shader::SetUniform1i(const char* name, int value)
 
 	glUseProgram(m_shaderProgram);
 	glUniform1i(uniformLocation, value);
-	glUseProgram(0);
 	return true;
 }
 
@@ -155,18 +151,17 @@ bool Shader::SetUniformMatrix4fv(const char* name, float* value)
 
 	glUseProgram(m_shaderProgram);
 	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, value);
-	glUseProgram(0);
 	return true;
 }
 
-int Shader::GetUniformLocation(const char* name)
+int Shader::GetUniformLocation(const std::string& name)
 {
 	if (m_uniformCache.contains(name))
 	{
 		return m_uniformCache.at(name);
 	}
 
-	const int uniformLocation = glGetUniformLocation(m_shaderProgram, name);
+	const int uniformLocation = glGetUniformLocation(m_shaderProgram, name.c_str());
 	if (uniformLocation != -1)
 	{
 		// Cache the uniform location

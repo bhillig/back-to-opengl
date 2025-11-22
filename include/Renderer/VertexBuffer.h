@@ -5,6 +5,7 @@
 class VertexBuffer
 {
 public:
+	VertexBuffer() = default;
 	VertexBuffer(const void* data, GLsizeiptr dataSize);
 	VertexBuffer(const void* data, GLsizeiptr dataSize, GLenum usage);
 	~VertexBuffer();

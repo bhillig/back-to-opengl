@@ -8,6 +8,7 @@
 
 #include <Scene/Scenes/CubeScene.h>
 #include <Scene/Scenes/LightingDemoScene.h>
+#include <Scene/Scenes/ModelScene.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -157,6 +158,11 @@ void Application::ConstructGUI()
 	if (ImGui::Button("Cube Scene"))
 	{
 		m_scene = std::make_unique<CubeScene>();
+		m_requestedSceneChange = true;
+	}
+	if (ImGui::Button("Model Scene"))
+	{
+		m_scene = std::make_unique<ModelScene>();
 		m_requestedSceneChange = true;
 	}
 	ImGui::End();

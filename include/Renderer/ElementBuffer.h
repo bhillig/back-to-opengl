@@ -5,6 +5,7 @@
 class ElementBuffer
 {
 public:
+	ElementBuffer() = default;
 	ElementBuffer(const void* data, GLsizeiptr dataSize);
 	ElementBuffer(const void* data, GLsizeiptr dataSize, GLenum usage);
 	~ElementBuffer();

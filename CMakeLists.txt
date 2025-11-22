@@ -55,6 +55,8 @@ set(SOURCES
 	src/Application.cpp
 	src/Main.cpp
 	src/Renderer/ElementBuffer.cpp
+	src/Renderer/Mesh.cpp
+	src/Renderer/Model.cpp
 	src/Renderer/Shader.cpp
 	src/Renderer/Texture.cpp
 	src/Renderer/VertexArray.cpp
@@ -65,6 +67,7 @@ set(SOURCES
 	src/Scene/Scene.cpp
 	src/Scene/Scenes/CubeScene.cpp
 	src/Scene/Scenes/LightingDemoScene.cpp
+	src/Scene/Scenes/ModelScene.cpp
 	src/Utils/FileUtils.cpp)
 
 set(HEADERS
@@ -72,6 +75,8 @@ set(HEADERS
 	include/Core/Event.h
 	include/Core/EventDispatcher.h
 	include/Renderer/ElementBuffer.h
+	include/Renderer/Mesh.h
+	include/Renderer/Model.h
 	include/Renderer/Shader.h
 	include/Renderer/Texture.h
 	include/Renderer/VertexArray.h
@@ -82,6 +87,7 @@ set(HEADERS
 	include/Scene/Scene.h
 	include/Scene/Scenes/CubeScene.h
 	include/Scene/Scenes/LightingDemoScene.h
+	include/Scene/Scenes/ModelScene.h
 	include/Utils/FileUtils.h)
 
 add_executable(BackToOpenGL ${SOURCES} ${HEADERS})
@@ -106,3 +112,5 @@ add_custom_command(TARGET BackToOpenGL POST_BUILD
 target_compile_definitions(BackToOpenGL PRIVATE SHADER_DIR="$<TARGET_FILE_DIR:BackToOpenGL>/rc/shaders")
 # Define TEXTURE_DIR
 target_compile_definitions(BackToOpenGL PRIVATE TEXTURE_DIR="$<TARGET_FILE_DIR:BackToOpenGL>/rc/textures")
+# Define MODEL_DIR
+target_compile_definitions(BackToOpenGL PRIVATE MODEL_DIR="$<TARGET_FILE_DIR:BackToOpenGL>/rc/models")
