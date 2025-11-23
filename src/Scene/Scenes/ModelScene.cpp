@@ -104,7 +104,7 @@ void ModelScene::Render()
 	m_modelShader->SetUniformMatrix4fv("u_View", glm::value_ptr(view));
 
 	// Projection
-	glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), Application::GetApp()->GetWidth() / Application::GetApp()->GetHeight(), 0.1f, 100.f);
+	glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), static_cast<float>(Core::Application::GetApp()->GetWidth()) / Core::Application::GetApp()->GetHeight(), 0.1f, 100.f);
 	m_modelShader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
 
 	// Set model matrix for model

@@ -17,14 +17,14 @@ Scene::~Scene()
 
 void Scene::OnLoad()
 {
-	m_eventHandle = Application::GetApp()->GetEventDispatcher().SubscribeAll([this](const Event& event) {
+	m_eventHandle = Core::Application::GetApp()->GetEventDispatcher().SubscribeAll([this](const Event& event) {
 		OnEvent(event);
 		});
 }
 
 void Scene::OnUnload()
 {
-	Application::GetApp()->GetEventDispatcher().UnsubscribeAll(m_eventHandle);
+	Core::Application::GetApp()->GetEventDispatcher().UnsubscribeAll(m_eventHandle);
 }
 
 void Scene::Simulate(float deltaTime, unsigned int timeSteps /* = 1*/)

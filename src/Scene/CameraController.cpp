@@ -15,27 +15,27 @@ CameraController::CameraController(Camera& camera)
 	, m_inputEnabled(true)
 	, m_firstMouseMoveEvent(true)
 {
-	m_mouseEventHandler = Application::GetApp()->GetEventDispatcher().Subscribe(EventType::MouseMove, [this](const Event& event) {
+	m_mouseEventHandler = Core::Application::GetApp()->GetEventDispatcher().Subscribe(EventType::MouseMove, [this](const Event& event) {
 		OnMouseMove(event.x, event.y);
 	});
 
-	m_keyPressedEventHandler = Application::GetApp()->GetEventDispatcher().Subscribe(EventType::KeyPressed, [this](const Event& event) {
+	m_keyPressedEventHandler = Core::Application::GetApp()->GetEventDispatcher().Subscribe(EventType::KeyPressed, [this](const Event& event) {
 		OnKeyPressed(event.key);
 	});
 
-	m_keyReleasedEventHandler = Application::GetApp()->GetEventDispatcher().Subscribe(EventType::KeyReleased, [this](const Event& event) {
+	m_keyReleasedEventHandler = Core::Application::GetApp()->GetEventDispatcher().Subscribe(EventType::KeyReleased, [this](const Event& event) {
 		OnKeyReleased(event.key);
 	});
 
-	const int cursorMode = glfwGetInputMode(Application::GetApp()->GetGLFWWindow(), GLFW_CURSOR);
+	const int cursorMode = glfwGetInputMode(Core::Application::GetApp()->GetGLFWWindow(), GLFW_CURSOR);
 	EnableInput(cursorMode == GLFW_CURSOR_DISABLED);
 }
 
 CameraController::~CameraController()
 {
-	Application::GetApp()->GetEventDispatcher().Unsubscribe(m_mouseEventHandler);
-	Application::GetApp()->GetEventDispatcher().Unsubscribe(m_keyPressedEventHandler);
-	Application::GetApp()->GetEventDispatcher().Unsubscribe(m_keyReleasedEventHandler);
+	Core::Application::GetApp()->GetEventDispatcher().Unsubscribe(m_mouseEventHandler);
+	Core::Application::GetApp()->GetEventDispatcher().Unsubscribe(m_keyPressedEventHandler);
+	Core::Application::GetApp()->GetEventDispatcher().Unsubscribe(m_keyReleasedEventHandler);
 }
 
 void CameraController::Update(float deltaTime)

@@ -6,18 +6,15 @@
 
 int main(int argc, char* argv[])
 {
-    if (!glfwInit()) return -1;
+	if (!glfwInit()) return -1;
 
-	Application::Init("OpenGL App", 1920, 1080);
+	Core::ApplicationSpecification appSpec;
+	appSpec.Name = "OpenGL";
+	appSpec.WindowSpec.Width = 1920;
+	appSpec.WindowSpec.Height = 1080;
 
-	Application* app = Application::GetApp();
-
-	app->InitScene();
-
-	app->Run();
-
-	Application::Shutdown();
-
-    glfwTerminate();
+	Core::Application app(appSpec);
+	app.InitScene();
+	app.Run();
     return 0;
 }

@@ -21,22 +21,32 @@
 #include <algorithm>
 #include <iostream>
 
+namespace Core
+{
+
 Application* Application::s_instance = nullptr;
 
-Application::Application(const char* name, int width, int height)
-	: m_width(width)
-	, m_height(height)
+Application::Application(const ApplicationSpecification& appSpec)
+	: m_appSpec(appSpec)
 	, m_deltaTime(0.f)
 	, m_lastTime(0.f)
 {
+	assert(!s_instance && "Application is already instantiated!");
+	s_instance = this;
+
 	// Set window hints (OpenGL version and profile)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required for macOS
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// Create window with (width, height, name)
-	m_window = glfwCreateWindow(m_width, m_height, name, nullptr, nullptr);
+	if (m_appSpec.WindowSpec.Title.empty())
+	{
+		m_appSpec.WindowSpec.Title = m_appSpec.Name;
+	}
+
+	// Create window 
+	m_window = glfwCreateWindow(m_appSpec.WindowSpec.Width, m_appSpec.WindowSpec.Height, m_appSpec.WindowSpec.Title.c_str(), nullptr, nullptr);
 
 	// Update context
 	glfwMakeContextCurrent(m_window);
@@ -59,7 +69,7 @@ Application::Application(const char* name, int width, int height)
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Initialize viewport
-	glViewport(0, 0, m_width, m_height);
+	glViewport(0, 0, m_appSpec.WindowSpec.Width, m_appSpec.WindowSpec.Height);
 
 	// Enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -67,11 +77,16 @@ Application::Application(const char* name, int width, int height)
 
 Application::~Application()
 {
+	// TODO: Move this to the window class
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 
 	glfwDestroyWindow(m_window);
+
+	m_scene.release();
+
+	s_instance = nullptr;
 }
 
 void Application::InitScene()
@@ -116,7 +131,7 @@ void Application::Run()
 
 		// Simulate the current scene
 		// TODO: Hacky fix for now - should implement a more robust scene manager
-		if (!m_requestedSceneChange) 
+		if (!m_requestedSceneChange)
 		{
 			m_scene->Simulate(m_deltaTime);
 		}
@@ -151,7 +166,7 @@ void Application::ConstructGUI()
 	ImGui::Begin("Properties");
 	m_scene->ConstructGUI();
 	ImGui::Text("Scenes:");
-	if (ImGui::Button("Lighting Demo"))
+	if (ImGui::Button("Lighting Scene"))
 	{
 		m_scene = std::make_unique<LightingDemoScene>();
 		m_requestedSceneChange = true;
@@ -172,7 +187,7 @@ void Application::ConstructGUI()
 
 void Application::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	// Retrieve the pointer to your Window instance
+	// Retrieve the pointer to the Window instance
 	Application* self = static_cast<Application*>(glfwGetWindowUserPointer(window));
 	if (!self) return;
 
@@ -204,5 +219,12 @@ void Application::CursorPosCallback(GLFWwindow* window, double xPos, double yPos
 
 void Application::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
+	Application* self = static_cast<Application*>(glfwGetWindowUserPointer(window));
+	assert(self);
+
+	self->m_appSpec.WindowSpec.Width = width;
+	self->m_appSpec.WindowSpec.Height = height;
 	glViewport(0, 0, width, height);
 }
+
+} // namespace Core

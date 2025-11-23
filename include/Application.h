@@ -15,30 +15,34 @@
 
 class Scene;
 
+namespace Core
+{
+
+	struct WindowSpecification
+	{
+		std::string Title;
+		int Width = 1920;
+		int Height = 1080;
+	};
+
+	struct ApplicationSpecification
+	{
+		std::string Name;
+		WindowSpecification WindowSpec;
+	};
+
 class Application
 {
 public:
-	Application(const char* name, int width, int height);
+	Application(const ApplicationSpecification& appSpec);
 	~Application();
 
 	void InitScene();
-
-	static void Init(const char* name, int width, int height)
-	{
-		assert(!s_instance && "Application is already created!");
-		s_instance = new Application(name, width, height);
-	}
 
 	static Application* GetApp()
 	{
 		assert(s_instance && "Application has not been created!");
 		return s_instance;
-	}
-
-	static void Shutdown()
-	{
-		delete s_instance;
-		s_instance = nullptr;
 	}
 
 	void Run();
@@ -47,9 +51,9 @@ public:
 
 	EventDispatcher& GetEventDispatcher() { return m_eventDispatcher; }
 
-	float GetWidth() const { return m_width; }
+	int GetWidth() const { return m_appSpec.WindowSpec.Width; }
 
-	float GetHeight() const { return m_height; }
+	int GetHeight() const { return m_appSpec.WindowSpec.Height; }
 
 	float m_depth = -3.0f;
 
@@ -66,11 +70,10 @@ private:
 
 private:
 	GLFWwindow* m_window;
-	float m_width;
-	float m_height;
+	ApplicationSpecification m_appSpec;
 
 	EventDispatcher m_eventDispatcher;
-	
+
 	float m_deltaTime;
 	float m_lastTime;
 
@@ -80,3 +83,5 @@ private:
 
 	static Application* s_instance;
 };
+
+}
