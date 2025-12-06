@@ -1,11 +1,5 @@
 #include <Application.h>
 
-#include <Renderer/ElementBuffer.h>
-#include <Renderer/Shader.h>
-#include <Renderer/VertexArray.h>
-#include <Renderer/VertexBuffer.h>
-#include <Renderer/VertexBufferLayout.h>
-
 #include <Scene/Scenes/CubeScene.h>
 #include <Scene/Scenes/LightingDemoScene.h>
 #include <Scene/Scenes/ModelScene.h>
@@ -13,10 +7,6 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <algorithm>
 #include <iostream>
@@ -34,63 +24,39 @@ Application::Application(const ApplicationSpecification& appSpec)
 	assert(!s_instance && "Application is already instantiated!");
 	s_instance = this;
 
-	// Set window hints (OpenGL version and profile)
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required for macOS
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 	if (m_appSpec.WindowSpec.Title.empty())
 	{
 		m_appSpec.WindowSpec.Title = m_appSpec.Name;
 	}
 
-	// Create window 
-	m_window = glfwCreateWindow(m_appSpec.WindowSpec.Width, m_appSpec.WindowSpec.Height, m_appSpec.WindowSpec.Title.c_str(), nullptr, nullptr);
+	m_window = std::make_unique<Window>(m_appSpec.WindowSpec);
+}
 
-	// Update context
-	glfwMakeContextCurrent(m_window);
-
-	// Allows callbacks to access this window class
-	glfwSetWindowUserPointer(m_window, this);
-
-	// Set GLFW callbacks
-	glfwSetKeyCallback(m_window, Application::KeyCallback);
-	glfwSetCursorPosCallback(m_window, Application::CursorPosCallback);
-	glfwSetFramebufferSizeCallback(m_window, Application::FramebufferSizeCallback);
-
-	// Initialize GLAD
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return;
+bool Application::Init()
+{
+	// TODO: Add glfw error callback
+	if (!glfwInit())
+	{
+		std::cerr << "Application failed to initialize: Failed to init glfw!\n";
+		return false;
 	}
 
-	// Capture mouse cursor
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	if (!m_window->Create())
+	{
+		std::cerr << "Application failed to initialize: Failed to create window!\n";
+		return false;
+	}
 
-	// Initialize viewport
-	glViewport(0, 0, m_appSpec.WindowSpec.Width, m_appSpec.WindowSpec.Height);
+	// TODO: Have the window handle the callbacks and then pass it to the application
 
-	// Enable depth testing
-	glEnable(GL_DEPTH_TEST);
-}
+	// Allows callbacks to access this application class
+	glfwSetWindowUserPointer(m_window->GetHandle(), this);
 
-Application::~Application()
-{
-	// TODO: Move this to the window class
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
+	// Set GLFW callbacks
+	glfwSetKeyCallback(m_window->GetHandle(), Application::KeyCallback);
+	glfwSetCursorPosCallback(m_window->GetHandle(), Application::CursorPosCallback);
+	glfwSetFramebufferSizeCallback(m_window->GetHandle(), Application::FramebufferSizeCallback);
 
-	glfwDestroyWindow(m_window);
-
-	m_scene.release();
-
-	s_instance = nullptr;
-}
-
-void Application::InitScene()
-{
 	// Init ImGui
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -98,10 +64,13 @@ void Application::InitScene()
 	ImGui::StyleColorsDark();
 
 	// Setup backends
-	ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+	ImGui_ImplGlfw_InitForOpenGL(m_window->GetHandle(), true);
 	ImGui_ImplOpenGL3_Init("#version 460");
+	return true;
+}
 
-	// Set scene
+void Application::InitScene()
+{
 	m_scene = std::make_unique<LightingDemoScene>();
 }
 
@@ -109,7 +78,7 @@ void Application::Run()
 {
 	m_lastTime = glfwGetTime();
 
-	while (!glfwWindowShouldClose(m_window))
+	while (!m_window->ShouldClose())
 	{
 		m_requestedSceneChange = false;
 
@@ -121,40 +90,42 @@ void Application::Run()
 		// Process events
 		glfwPollEvents();
 
-		// Process ImGui
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		m_window->SetupGUIForFrame();
 
 		// Construct ImGui
 		ConstructGUI();
 
-		// Simulate the current scene
-		// TODO: Hacky fix for now - should implement a more robust scene manager
-		if (!m_requestedSceneChange)
+		// TODO: Move this to user side
 		{
-			m_scene->Simulate(m_deltaTime);
+			// Simulate the current scene
+			// TODO: Hacky fix for now - should implement a more robust scene manager
+			if (!m_requestedSceneChange)
+			{
+				m_scene->Simulate(m_deltaTime);
+			}
 		}
 
-		// Render ImGui
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		// Swap front and back buffers
-		glfwSwapBuffers(m_window);
+		m_window->RenderGUI();
+		m_window->Update();
 	}
+}
+
+GLFWwindow* Application::GetGLFWWindow() const
+{
+	assert(m_window && "Window not initialized!");
+	return m_window->GetHandle();
 }
 
 void Application::ToggleInputMode()
 {
-	const int cursorMode = glfwGetInputMode(m_window, GLFW_CURSOR);
+	const int cursorMode = glfwGetInputMode(m_window->GetHandle(), GLFW_CURSOR);
 	switch (cursorMode)
 	{
 	case GLFW_CURSOR_DISABLED:
-		glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		glfwSetInputMode(m_window->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		break;
 	case GLFW_CURSOR_NORMAL:
-		glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetInputMode(m_window->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		break;
 	default:
 		break;
@@ -225,6 +196,12 @@ void Application::FramebufferSizeCallback(GLFWwindow* window, int width, int hei
 	self->m_appSpec.WindowSpec.Width = width;
 	self->m_appSpec.WindowSpec.Height = height;
 	glViewport(0, 0, width, height);
+}
+
+Application::~Application()
+{
+	m_scene.release();
+	s_instance = nullptr;
 }
 
 } // namespace Core

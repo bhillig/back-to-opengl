@@ -1,20 +1,22 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <iostream>
-
 #include <Application.h>
 
 int main(int argc, char* argv[])
 {
-	if (!glfwInit()) return -1;
-
 	Core::ApplicationSpecification appSpec;
-	appSpec.Name = "OpenGL";
+	appSpec.Name = "OpenGL App";
 	appSpec.WindowSpec.Width = 1920;
 	appSpec.WindowSpec.Height = 1080;
 
+	// Create application with specification and initialize it
 	Core::Application app(appSpec);
+	if (!app.Init())
+	{
+		return -1;
+	}
+
 	app.InitScene();
+
 	app.Run();
+
     return 0;
 }

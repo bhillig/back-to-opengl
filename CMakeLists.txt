@@ -53,6 +53,7 @@ add_subdirectory(external/assimp)
 
 set(SOURCES 
 	src/Application.cpp
+	src/Core/Window.cpp
 	src/Main.cpp
 	src/Renderer/ElementBuffer.cpp
 	src/Renderer/Mesh.cpp
@@ -74,6 +75,7 @@ set(HEADERS
 	include/Application.h
 	include/Core/Event.h
 	include/Core/EventDispatcher.h
+	include/Core/Window.h
 	include/Renderer/ElementBuffer.h
 	include/Renderer/Mesh.h
 	include/Renderer/Model.h

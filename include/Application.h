@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <Core/Window.h>
 #include <Core/EventDispatcher.h>
 
 #include <Renderer/Shader.h>
@@ -17,17 +18,9 @@ class Scene;
 
 namespace Core
 {
-
-	struct WindowSpecification
-	{
-		std::string Title;
-		int Width = 1920;
-		int Height = 1080;
-	};
-
 	struct ApplicationSpecification
 	{
-		std::string Name;
+		std::string Name = "Application";
 		WindowSpecification WindowSpec;
 	};
 
@@ -36,6 +29,8 @@ class Application
 public:
 	Application(const ApplicationSpecification& appSpec);
 	~Application();
+
+	bool Init();
 
 	void InitScene();
 
@@ -47,7 +42,7 @@ public:
 
 	void Run();
 
-	GLFWwindow* GetGLFWWindow() const { return m_window; }
+	GLFWwindow* GetGLFWWindow() const;
 
 	EventDispatcher& GetEventDispatcher() { return m_eventDispatcher; }
 
@@ -69,8 +64,8 @@ private:
 	static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
 
 private:
-	GLFWwindow* m_window;
 	ApplicationSpecification m_appSpec;
+	std::unique_ptr<Window> m_window;
 
 	EventDispatcher m_eventDispatcher;
 
