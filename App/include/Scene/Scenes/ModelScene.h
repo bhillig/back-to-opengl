@@ -2,6 +2,8 @@
 
 #include <Scene/Scene.h>
 
+#include <CameraController.h>
+
 #include <Renderer/Model.h>
 #include <Renderer/Shader.h>
 #include <Renderer/Texture.h>
@@ -14,18 +16,12 @@
 #include <glm/gtc/type_ptr.hpp>
 
 class Camera;
-class CameraController;
 
 class ModelScene final : public Scene
 {
 public:
 
 	ModelScene();
-	~ModelScene() override;
-
-	void OnLoad() override;
-
-	void OnUnload() override;
 
 	void ConstructGUI() override;
 
@@ -37,7 +33,9 @@ protected:
 
 protected:
 
-	void OnKeyPressed(int key) override;
+	bool OnMouseMove(double xPos, double yPos) override;
+	bool OnKeyPressed(int key) override;
+	bool OnKeyReleased(int key) override;
 
 private:
 

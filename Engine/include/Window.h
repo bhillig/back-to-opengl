@@ -3,7 +3,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <Event.h>
+
 #include <string>
+#include <functional>
 
 namespace Core
 {
@@ -13,6 +16,7 @@ struct WindowSpecification
 	std::string Title;
 	int Width = 1920;
 	int Height = 1080;
+	std::function<void(Event&)> Callback;
 };
 
 class Window

@@ -57,22 +57,8 @@ glm::vec3 pointLightPositions[] = {
 };
 
 LightingDemoScene::LightingDemoScene()
-	: Scene()
-	, m_value(0.f)
+	: m_value(0.f)
 {
-	OnLoad();
-}
-
-LightingDemoScene::~LightingDemoScene()
-{
-	OnUnload();
-}
-
-void LightingDemoScene::OnLoad()
-{
-	Scene::OnLoad();
-
-
 	float objectVertices[] = {
 		// positions          // normals           // texture coords
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
@@ -230,11 +216,6 @@ void LightingDemoScene::OnLoad()
 	glClearColor(blackColor.r, blackColor.g, blackColor.b, blackColor.a);
 }
 
-void LightingDemoScene::OnUnload()
-{
-	Scene::OnUnload();
-}
-
 void LightingDemoScene::ConstructGUI()
 {
 	Scene::ConstructGUI();
@@ -333,14 +314,40 @@ void LightingDemoScene::Render()
 	m_crateSpecularTexture->Unbind();
 }
 
-void LightingDemoScene::OnKeyPressed(int key)
+bool LightingDemoScene::OnMouseMove(double xPos, double yPos)
 {
+	if (m_cameraController)
+	{
+		m_cameraController->OnMouseMove(xPos, yPos);
+	}
+	return false;
+}
+
+bool LightingDemoScene::OnKeyPressed(int key)
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnKeyPressed(key);
+	}
+
 	if (key == GLFW_KEY_ESCAPE)
 	{
 		m_cameraController->EnableInput(!m_cameraController->inputEnabled());
+		return true;
 	}
 	if (key == GLFW_KEY_F)
 	{
 		m_flashlightOn = !m_flashlightOn;
+		return true;
 	}
+	return false;
+}
+
+bool LightingDemoScene::OnKeyReleased(int key)
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnKeyReleased(key);
+	}
+	return false;
 }

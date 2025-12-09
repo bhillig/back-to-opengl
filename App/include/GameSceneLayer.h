@@ -2,24 +2,30 @@
 
 #include <Layer.h>
 
-#include <memory>
+#include <Scene/Scene.h>
+#include <Event.h>
 
-class Scene;
+#include <memory>
 
 class GameSceneLayer : public Core::Layer
 {
 
 public:
 	GameSceneLayer();
-	~GameSceneLayer() override;
 
 	void OnUpdate(float deltaTime) override;
 
-	void OnEvent();
+	void OnEvent(Core::Event& event) override;
+
+// Event callbacks
+private:
+	bool OnKeyPressed(int keyCode);
 
 private:
 
 	void RenderGUI();
+
+	void ToggleInputMode();
 
 	std::unique_ptr<Scene> m_currentScene;
 };

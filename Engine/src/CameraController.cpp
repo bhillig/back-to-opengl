@@ -4,6 +4,10 @@
 
 #include <algorithm>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 CameraController::CameraController(Camera& camera)
 	: m_camera(camera)
 	, m_mouseHorizontalSensitivity(0.1f)
@@ -15,27 +19,12 @@ CameraController::CameraController(Camera& camera)
 	, m_inputEnabled(true)
 	, m_firstMouseMoveEvent(true)
 {
-	m_mouseEventHandler = Core::Application::GetApp()->GetEventDispatcher().Subscribe(EventType::MouseMove, [this](const Event& event) {
-		OnMouseMove(event.x, event.y);
-	});
-
-	m_keyPressedEventHandler = Core::Application::GetApp()->GetEventDispatcher().Subscribe(EventType::KeyPressed, [this](const Event& event) {
-		OnKeyPressed(event.key);
-	});
-
-	m_keyReleasedEventHandler = Core::Application::GetApp()->GetEventDispatcher().Subscribe(EventType::KeyReleased, [this](const Event& event) {
-		OnKeyReleased(event.key);
-	});
-
 	const int cursorMode = glfwGetInputMode(Core::Application::GetApp()->GetGLFWWindow(), GLFW_CURSOR);
 	EnableInput(cursorMode == GLFW_CURSOR_DISABLED);
 }
 
 CameraController::~CameraController()
 {
-	Core::Application::GetApp()->GetEventDispatcher().Unsubscribe(m_mouseEventHandler);
-	Core::Application::GetApp()->GetEventDispatcher().Unsubscribe(m_keyPressedEventHandler);
-	Core::Application::GetApp()->GetEventDispatcher().Unsubscribe(m_keyReleasedEventHandler);
 }
 
 void CameraController::Update(float deltaTime)

@@ -1,15 +1,8 @@
 #pragma once
 
 #include <Camera.h>
-#include <EventDispatcher.h>
 
 #include <memory>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-class Window;
 
 class CameraController
 {
@@ -22,8 +15,6 @@ public:
 	void Update(float deltaTime);
 
 	void EnableInput(bool enabled);
-
-protected:
 
 	void OnMouseMove(double xPos, double yPos);
 
@@ -44,8 +35,4 @@ private:
 
 	bool m_inputEnabled;
 	bool m_firstMouseMoveEvent;
-
-	EventHandle m_mouseEventHandler;
-	EventHandle m_keyPressedEventHandler;
-	EventHandle m_keyReleasedEventHandler;
 };

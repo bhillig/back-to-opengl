@@ -2,6 +2,8 @@
 
 #include <Scene/Scene.h>
 
+#include <CameraController.h>
+
 #include <Renderer/Shader.h>
 #include <Renderer/Texture.h>
 #include <Renderer/VertexArray.h>
@@ -9,19 +11,12 @@
 #include <memory>
 
 class Camera;
-class CameraController;
 
 class CubeScene final : public Scene
 {
 public:
 
 	CubeScene();
-	~CubeScene() override;
-
-	void OnLoad() override;
-
-	void OnUnload() override;
-
 	void ConstructGUI() override;
 
 protected:
@@ -32,7 +27,9 @@ protected:
 
 protected:
 
-	void OnKeyPressed(int key) override;
+	bool OnMouseMove(double xPos, double yPos) override;
+	bool OnKeyPressed(int key) override;
+	bool OnKeyReleased(int key) override;
 
 private:
 

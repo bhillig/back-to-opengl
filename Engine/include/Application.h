@@ -3,8 +3,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <Event.h>
 #include <Window.h>
-#include <EventDispatcher.h>
 #include <Layer.h>
 
 #include <Renderer/Shader.h>
@@ -43,13 +43,9 @@ public:
 
 	GLFWwindow* GetGLFWWindow() const;
 
-	EventDispatcher& GetEventDispatcher() { return m_eventDispatcher; }
-
 	int GetWidth() const { return m_appSpec.WindowSpec.Width; }
 
 	int GetHeight() const { return m_appSpec.WindowSpec.Height; }
-
-	float m_depth = -3.0f;
 
 	template<typename T>
 	void AddLayer()
@@ -59,23 +55,14 @@ public:
 
 private:
 
-	void ToggleInputMode();
-
-	// Callbacks
-	static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static void CursorPosCallback(GLFWwindow* window, double xPos, double yPos);
-	static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
+	void RaiseEvent(Event& event);
 
 private:
 	ApplicationSpecification m_appSpec;
 	std::unique_ptr<Window> m_window;
 
-	EventDispatcher m_eventDispatcher;
-
 	float m_deltaTime;
 	float m_lastTime;
-
-	bool m_requestedSceneChange = false;
 
 	std::vector<std::unique_ptr<Layer>> m_layerStack;
 

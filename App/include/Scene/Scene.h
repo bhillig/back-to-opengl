@@ -1,25 +1,20 @@
 #pragma once
 
-#include <EventDispatcher.h>
+#include <Event.h>
 
 class Scene
 {
 public:
-	Scene();
-
-	virtual ~Scene();
-
-	// Called when the application loads the scene
-	virtual void OnLoad();
-
-	// Called when the application unloads the scene
-	virtual void OnUnload();
+	virtual ~Scene() {};
 
 	// Simulates the scene
 	void Simulate(float deltaTime, unsigned int timeSteps = 1);
 
 	// Constructs the scene's GUI properties
 	virtual void ConstructGUI() {}
+
+	// Process events
+	void OnEvent(Core::Event& event);
 
 protected:
 
@@ -32,15 +27,8 @@ protected:
 protected:
 
 	// Event callbacks
-	virtual void OnKeyPressed(int key) {}
-	virtual void OnKeyReleased(int key) {}
-	virtual void OnMouseMove(double xPos, double yPos) {}
-
-private:
-
-	// Process events
-	void OnEvent(const Event& event);
-
-	EventHandle m_eventHandle;
+	virtual bool OnKeyPressed(int key) { return false; }
+	virtual bool OnKeyReleased(int key) { return false; }
+	virtual bool OnMouseMove(double xPos, double yPos) { return false; }
 
 };

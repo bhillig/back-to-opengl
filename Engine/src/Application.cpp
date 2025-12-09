@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <ranges>
 
 namespace Core
 {
@@ -25,6 +26,10 @@ Application::Application(const ApplicationSpecification& appSpec)
 		m_appSpec.WindowSpec.Title = m_appSpec.Name;
 	}
 
+	m_appSpec.WindowSpec.Callback = [this](Event& event) {
+		RaiseEvent(event);
+	};
+
 	m_window = std::make_unique<Window>(m_appSpec.WindowSpec);
 }
 
@@ -42,16 +47,6 @@ bool Application::Init()
 		std::cerr << "Application failed to initialize: Failed to create window!\n";
 		return false;
 	}
-
-	// TODO: Have the window handle the callbacks and then pass it to the application
-
-	// Allows callbacks to access this application class
-	glfwSetWindowUserPointer(m_window->GetHandle(), this);
-
-	// Set GLFW callbacks
-	glfwSetKeyCallback(m_window->GetHandle(), Application::KeyCallback);
-	glfwSetCursorPosCallback(m_window->GetHandle(), Application::CursorPosCallback);
-	glfwSetFramebufferSizeCallback(m_window->GetHandle(), Application::FramebufferSizeCallback);
 
 	// Init ImGui
 	IMGUI_CHECKVERSION();
@@ -104,68 +99,17 @@ GLFWwindow* Application::GetGLFWWindow() const
 	return m_window->GetHandle();
 }
 
-void Application::ToggleInputMode()
+void Application::RaiseEvent(Event& event)
 {
-	const int cursorMode = glfwGetInputMode(m_window->GetHandle(), GLFW_CURSOR);
-	switch (cursorMode)
+	for (auto& layer : std::views::reverse(m_layerStack))
 	{
-	case GLFW_CURSOR_DISABLED:
-		glfwSetInputMode(m_window->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		break;
-	case GLFW_CURSOR_NORMAL:
-		glfwSetInputMode(m_window->GetHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		break;
-	default:
-		break;
+		layer->OnEvent(event);
 	}
-}
-
-void Application::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	// Retrieve the pointer to the Window instance
-	Application* self = static_cast<Application*>(glfwGetWindowUserPointer(window));
-	if (!self) return;
-
-	// TODO: Implement an input layer system to properly handle ImGui + 3D scene mouse events
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		self->ToggleInputMode();
-	}
-
-	if (action == GLFW_PRESS)
-	{
-		const Event e(EventType::KeyPressed, 0.0, 0.0, key);
-		self->m_eventDispatcher.Dispatch(e);
-	}
-	else if (action == GLFW_RELEASE)
-	{
-		const Event e(EventType::KeyReleased, 0.0, 0.0, key);
-		self->m_eventDispatcher.Dispatch(e);
-	}
-}
-
-void Application::CursorPosCallback(GLFWwindow* window, double xPos, double yPos)
-{
-	Application* self = static_cast<Application*>(glfwGetWindowUserPointer(window));
-	assert(self);
-
-	const Event e(EventType::MouseMove, xPos, yPos);
-	self->m_eventDispatcher.Dispatch(e);
-}
-
-void Application::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
-{
-	Application* self = static_cast<Application*>(glfwGetWindowUserPointer(window));
-	assert(self);
-
-	self->m_appSpec.WindowSpec.Width = width;
-	self->m_appSpec.WindowSpec.Height = height;
-	glViewport(0, 0, width, height);
 }
 
 Application::~Application()
 {
 	s_instance = nullptr;
-	m_layerStack.clear();
 }
 
 } // namespace Core

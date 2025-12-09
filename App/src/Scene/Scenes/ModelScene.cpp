@@ -23,20 +23,7 @@ const std::string kColorFromTextureFS = SHADER_DIR + std::string("/colorFromText
 const std::string kBackpackModel = MODEL_DIR + std::string("/backpack/backpack.obj");
 
 ModelScene::ModelScene()
-	: Scene()
 {
-	OnLoad();
-}
-
-ModelScene::~ModelScene()
-{
-	OnUnload();
-}
-
-void ModelScene::OnLoad()
-{
-	Scene::OnLoad();
-
 	// Set model
 	m_model = std::make_unique<Model>(kBackpackModel.c_str());
 
@@ -60,11 +47,6 @@ void ModelScene::OnLoad()
 	// Set initial color
 	const glm::vec4 bgColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-}
-
-void ModelScene::OnUnload()
-{
-	Scene::OnUnload();
 }
 
 void ModelScene::ConstructGUI()
@@ -117,10 +99,35 @@ void ModelScene::Render()
 	m_model->Draw(*m_modelShader);
 }
 
-void ModelScene::OnKeyPressed(int key)
+bool ModelScene::OnMouseMove(double xPos, double yPos)
 {
+	if (m_cameraController)
+	{
+		m_cameraController->OnMouseMove(xPos, yPos);
+	}
+	return false;
+}
+
+bool ModelScene::OnKeyPressed(int key)
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnKeyPressed(key);
+	}
+
 	if (key == GLFW_KEY_ESCAPE)
 	{
 		m_cameraController->EnableInput(!m_cameraController->inputEnabled());
+		return true;
 	}
+	return false;
+}
+
+bool ModelScene::OnKeyReleased(int key)
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnKeyReleased(key);
+	}
+	return false;
 }

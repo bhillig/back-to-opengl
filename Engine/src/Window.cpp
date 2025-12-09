@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <InputEvents.h>
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -10,7 +12,7 @@ namespace Core
 {
 
 Window::Window(const WindowSpecification& windowSpec)
-	: m_windowSpecification(windowSpec)
+	: m_windowSpecification(windowSpec) , m_handle(nullptr)
 {
 }
 
@@ -32,6 +34,44 @@ bool Window::Create()
 
 	// Update context
 	glfwMakeContextCurrent(m_handle);
+
+	// Allows callbacks to access this application class
+	glfwSetWindowUserPointer(m_handle, this);
+
+	// Set GLFW callbacks
+	glfwSetKeyCallback(m_handle, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+		Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (!self) return;
+
+		if (action == GLFW_PRESS || action == GLFW_REPEAT)
+		{
+			KeyPressedEvent event(key, action == GLFW_REPEAT);
+			self->m_windowSpecification.Callback(event);
+		}
+		else if (action == GLFW_RELEASE)
+		{
+			KeyReleasedEvent event(key);
+			self->m_windowSpecification.Callback(event);
+		}
+	});
+
+	glfwSetCursorPosCallback(m_handle, [](GLFWwindow* window, double xPos, double yPos) {
+		Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (!self) return;
+		
+		MouseMovedEvent event(xPos, yPos);
+		self->m_windowSpecification.Callback(event);
+	});
+
+	glfwSetFramebufferSizeCallback(m_handle, [](GLFWwindow* window, int width, int height) {
+		Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (!self) return;
+
+		// TODO: Make this a WindowResize Event and raise it here
+		self->m_windowSpecification.Width = width;
+		self->m_windowSpecification.Height = height;
+		glViewport(0, 0, width, height);
+	});
 
 	// Initialize GLAD
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {

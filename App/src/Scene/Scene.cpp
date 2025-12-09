@@ -2,30 +2,13 @@
 
 #include <Application.h>
 
+#include <InputEvents.h>
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
-Scene::Scene()
-	: m_eventHandle({ 0 })
-{
-}
-
-Scene::~Scene()
-{
-}
-
-void Scene::OnLoad()
-{
-	m_eventHandle = Core::Application::GetApp()->GetEventDispatcher().SubscribeAll([this](const Event& event) {
-		OnEvent(event);
-		});
-}
-
-void Scene::OnUnload()
-{
-	Core::Application::GetApp()->GetEventDispatcher().UnsubscribeAll(m_eventHandle);
-}
+using Core::EventDispatcher;
 
 void Scene::Simulate(float deltaTime, unsigned int timeSteps /* = 1*/)
 {
@@ -36,20 +19,10 @@ void Scene::Simulate(float deltaTime, unsigned int timeSteps /* = 1*/)
 	Render();
 }
 
-void Scene::OnEvent(const Event& event)
+void Scene::OnEvent(Core::Event& event)
 {
-	switch (event.type)
-	{
-	case EventType::KeyPressed:
-		OnKeyPressed(event.key);
-		break;
-	case EventType::KeyReleased:
-		OnKeyReleased(event.key);
-		break;
-	case EventType::MouseMove:
-		OnMouseMove(event.x, event.y);
-		break;
-	default:
-		break;
-	}
+	EventDispatcher dispatcher(event);
+	dispatcher.Dispatch<Core::MouseMovedEvent>([this](Core::MouseMovedEvent& event) { return OnMouseMove(event.GetX(), event.GetY()); });
+	dispatcher.Dispatch<Core::KeyPressedEvent>([this](Core::KeyPressedEvent& event) { return OnKeyPressed(event.GetKeyCode()); });
+	dispatcher.Dispatch<Core::KeyReleasedEvent>([this](Core::KeyReleasedEvent& event) { return OnKeyReleased(event.GetKeyCode()); });
 }

@@ -69,7 +69,7 @@ set(HEADERS
 	include/Camera.h
 	include/CameraController.h
 	include/Event.h
-	include/EventDispatcher.h
+	include/InputEvents.h
 	include/Layer.h
 	include/Window.h
 	include/Renderer/ElementBuffer.h

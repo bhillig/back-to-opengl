@@ -52,20 +52,7 @@ glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
 CubeScene::CubeScene()
-	: Scene()
 {
-	OnLoad();
-}
-
-CubeScene::~CubeScene()
-{
-	OnUnload();
-}
-
-void CubeScene::OnLoad()
-{
-	Scene::OnLoad();
-
 	float vertices[] = {
 		// Position           // Texture Coordinates
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -155,11 +142,6 @@ void CubeScene::OnLoad()
 	glClearColor(grayColor.r, grayColor.g, grayColor.b, grayColor.a);
 }
 
-void CubeScene::OnUnload()
-{
-	Scene::OnUnload();
-}
-
 void CubeScene::ConstructGUI()
 {
 	Scene::ConstructGUI();
@@ -216,10 +198,35 @@ void CubeScene::Render()
 	m_texture->Unbind();
 }
 
-void CubeScene::OnKeyPressed(int key)
+bool CubeScene::OnMouseMove(double xPos, double yPos)
 {
+	if (m_cameraController)
+	{
+		m_cameraController->OnMouseMove(xPos, yPos);
+	}
+	return false;
+}
+
+bool CubeScene::OnKeyPressed(int key)
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnKeyPressed(key);
+	}
+
 	if (key == GLFW_KEY_ESCAPE)
 	{
 		m_cameraController->EnableInput(!m_cameraController->inputEnabled());
+		return true;
 	}
+	return false;
+}
+
+bool CubeScene::OnKeyReleased(int key)
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnKeyReleased(key);
+	}
+	return false;
 }

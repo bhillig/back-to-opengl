@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Event.h>
+
 namespace Core
 {
 
@@ -12,7 +14,7 @@ public:
 
 	virtual void OnRender() {};
 
-	virtual void OnEvent() {};
+	virtual void OnEvent(Event& event) {};
 
 };
 
