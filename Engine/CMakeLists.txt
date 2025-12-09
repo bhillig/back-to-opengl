@@ -1,0 +1,98 @@
+project(Engine)
+
+# Set C++23 verison
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Locate OpenGL
+find_package(OpenGL REQUIRED)
+
+include(FetchContent)
+
+# ----------------------------------------------------------
+# GLFW
+# ----------------------------------------------------------
+FetchContent_Declare(
+	glfw
+	GIT_REPOSITORY https://github.com/glfw/glfw.git
+	GIT_TAG 3.4
+)
+
+FetchContent_MakeAvailable(glfw)
+
+# ----------------------------------------------------------
+# Glad
+# ----------------------------------------------------------
+add_subdirectory(external/glad)
+
+# ----------------------------------------------------------
+# stb_image
+# ----------------------------------------------------------
+add_subdirectory(external/stb_image)
+
+# ----------------------------------------------------------
+# Dear ImGui
+# ----------------------------------------------------------
+add_library(imgui
+    external/imgui/imgui.cpp
+    external/imgui/imgui_draw.cpp
+    external/imgui/imgui_tables.cpp
+    external/imgui/imgui_widgets.cpp
+    external/imgui/backends/imgui_impl_glfw.cpp
+    external/imgui/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(imgui PUBLIC external/imgui external/imgui/backends)
+target_link_libraries(imgui PUBLIC OpenGL::GL glfw)
+
+# ----------------------------------------------------------
+# assimp - Open-Asset-Importer-Library
+# ----------------------------------------------------------
+add_subdirectory(external/assimp)
+
+set(SOURCES 
+	src/Application.cpp
+	src/Camera.cpp
+	src/CameraController.cpp
+	src/Window.cpp
+	src/Renderer/ElementBuffer.cpp
+	src/Renderer/Mesh.cpp
+	src/Renderer/Model.cpp
+	src/Renderer/Shader.cpp
+	src/Renderer/Texture.cpp
+	src/Renderer/VertexArray.cpp
+	src/Renderer/VertexBuffer.cpp
+	src/Renderer/VertexBufferLayout.cpp
+	src/Utils/FileUtils.cpp)
+
+set(HEADERS
+	include/Application.h
+	include/Camera.h
+	include/CameraController.h
+	include/Event.h
+	include/EventDispatcher.h
+	include/Layer.h
+	include/Window.h
+	include/Renderer/ElementBuffer.h
+	include/Renderer/Mesh.h
+	include/Renderer/Model.h
+	include/Renderer/Shader.h
+	include/Renderer/Texture.h
+	include/Renderer/VertexArray.h
+	include/Renderer/VertexBuffer.h
+	include/Renderer/VertexBufferLayout.h
+	include/Utils/FileUtils.h)
+
+add_library(Engine STATIC ${SOURCES} ${HEADERS})
+
+target_link_libraries(Engine PUBLIC OpenGL::GL glfw glad stb_image imgui assimp)
+
+target_include_directories(Engine PUBLIC include)
+
+# Sync Visual Studio file directories to what's on disk
+set(ALL_FILES ${SOURCES} ${HEADERS})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${ALL_FILES})
+
+# ----------------------------------------------------------
+# GLM (Header Only Math Library)
+# ----------------------------------------------------------
+target_include_directories(Engine PUBLIC external/glm/include)
