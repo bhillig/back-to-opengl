@@ -93,10 +93,10 @@ void Application::Run()
 	}
 }
 
-GLFWwindow* Application::GetGLFWWindow() const
+const Window& Application::GetWindow() const
 {
 	assert(m_window && "Window not initialized!");
-	return m_window->GetHandle();
+	return *m_window;
 }
 
 void Application::RaiseEvent(Event& event)

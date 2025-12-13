@@ -41,11 +41,7 @@ public:
 
 	void Run();
 
-	GLFWwindow* GetGLFWWindow() const;
-
-	int GetWidth() const { return m_appSpec.WindowSpec.Width; }
-
-	int GetHeight() const { return m_appSpec.WindowSpec.Height; }
+	const Window& GetWindow() const;
 
 	template<typename T>
 	void AddLayer()

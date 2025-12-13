@@ -218,8 +218,6 @@ LightingDemoScene::LightingDemoScene()
 
 void LightingDemoScene::ConstructGUI()
 {
-	Scene::ConstructGUI();
-
 	ImGui::Text("Cube Scene");
 	float fov = m_camera->fov();
 	if (ImGui::SliderFloat("Camera FOV", &fov, 1.0f, 100.f))
@@ -262,7 +260,7 @@ void LightingDemoScene::Render()
 	m_colorFromLightSourceShader->SetUniformMatrix4fv("u_View", glm::value_ptr(view));
 
 	// Projection
-	glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), static_cast<float>(Core::Application::GetApp()->GetWidth()) / Core::Application::GetApp()->GetHeight(), 0.1f, 100.f);
+	glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), static_cast<float>(Core::Application::GetApp()->GetWindow().GetWidth()) / Core::Application::GetApp()->GetWindow().GetHeight(), 0.1f, 100.f);
 	m_lightSourceShader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
 	m_colorFromLightSourceShader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
 
