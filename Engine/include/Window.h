@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <Event.h>
+#include <Events/Event.h>
 
 #include <string>
 #include <functional>

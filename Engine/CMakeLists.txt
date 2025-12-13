@@ -68,11 +68,11 @@ set(HEADERS
 	include/Application.h
 	include/Camera.h
 	include/CameraController.h
-	include/Event.h
-	include/InputEvents.h
+	include/Events/Event.h
+	include/Events/InputEvents.h
+	include/Events/WindowEvents.h
 	include/Layer.h
 	include/Window.h
-	include/WindowEvents.h
 	include/Renderer/ElementBuffer.h
 	include/Renderer/Mesh.h
 	include/Renderer/Model.h
