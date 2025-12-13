@@ -72,6 +72,7 @@ set(HEADERS
 	include/InputEvents.h
 	include/Layer.h
 	include/Window.h
+	include/WindowEvents.h
 	include/Renderer/ElementBuffer.h
 	include/Renderer/Mesh.h
 	include/Renderer/Model.h

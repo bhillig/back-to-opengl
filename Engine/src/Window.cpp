@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <InputEvents.h>
+#include <WindowEvents.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -67,10 +68,20 @@ bool Window::Create()
 		Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
 		if (!self) return;
 
-		// TODO: Make this a WindowResize Event and raise it here
 		self->m_windowSpecification.Width = width;
 		self->m_windowSpecification.Height = height;
 		glViewport(0, 0, width, height);
+
+		WindowResizedEvent event(width, height);
+		self->m_windowSpecification.Callback(event);
+	});
+
+	glfwSetWindowCloseCallback(m_handle, [](GLFWwindow* window) {
+		Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (!self) return;
+
+		WindowClosedEvent event;
+		self->m_windowSpecification.Callback(event);
 	});
 
 	// Initialize GLAD
