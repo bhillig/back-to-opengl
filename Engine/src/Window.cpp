@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include <InputEvents.h>
-#include <WindowEvents.h>
+#include <Events/InputEvents.h>
+#include <Events/WindowEvents.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>

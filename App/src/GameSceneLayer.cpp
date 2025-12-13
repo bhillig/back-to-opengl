@@ -5,7 +5,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <InputEvents.h>
+#include <Events/InputEvents.h>
 
 #include <Scene/Scenes/CubeScene.h>
 #include <Scene/Scenes/LightingDemoScene.h>
