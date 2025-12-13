@@ -27,6 +27,7 @@ protected:
 
 protected:
 
+	void OnLoseFocus() override;
 	bool OnMouseMove(double xPos, double yPos) override;
 	bool OnKeyPressed(int key) override;
 	bool OnKeyReleased(int key) override;

@@ -3,6 +3,7 @@ project(App)
 set(SOURCES 
     src/Main.cpp
     src/GameSceneLayer.cpp
+    src/GUILayer.cpp
     src/Scene/Scene.cpp
 	src/Scene/Scenes/CubeScene.cpp
 	src/Scene/Scenes/LightingDemoScene.cpp
@@ -10,6 +11,7 @@ set(SOURCES
 
 set(HEADERS
     include/GameSceneLayer.h
+    include/GUILayer.h
 	include/Scene/Scene.h
 	include/Scene/Scenes/CubeScene.h
 	include/Scene/Scenes/LightingDemoScene.h

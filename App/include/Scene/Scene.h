@@ -16,6 +16,10 @@ public:
 	// Process events
 	void OnEvent(Core::Event& event);
 
+	virtual void OnGainFocus() {}
+
+	virtual void OnLoseFocus() {}
+
 protected:
 
 	// Called every timeSteps times per frame to update the scene's logic

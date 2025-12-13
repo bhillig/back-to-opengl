@@ -25,7 +25,9 @@ private:
 
 	void RenderGUI();
 
-	void ToggleInputMode();
+	void ToggleSceneFocus();
+
+	bool m_sceneHasFocus;
 
 	std::unique_ptr<Scene> m_currentScene;
 };

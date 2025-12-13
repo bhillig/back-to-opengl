@@ -330,11 +330,6 @@ bool LightingDemoScene::OnKeyPressed(int key)
 		m_cameraController->OnKeyPressed(key);
 	}
 
-	if (key == GLFW_KEY_ESCAPE)
-	{
-		m_cameraController->EnableInput(!m_cameraController->inputEnabled());
-		return true;
-	}
 	if (key == GLFW_KEY_F)
 	{
 		m_flashlightOn = !m_flashlightOn;
@@ -350,4 +345,12 @@ bool LightingDemoScene::OnKeyReleased(int key)
 		m_cameraController->OnKeyReleased(key);
 	}
 	return false;
+}
+
+void LightingDemoScene::OnLoseFocus()
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnLoseControl();
+	}
 }

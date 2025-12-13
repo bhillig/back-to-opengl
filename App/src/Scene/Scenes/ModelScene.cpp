@@ -99,6 +99,14 @@ void ModelScene::Render()
 	m_model->Draw(*m_modelShader);
 }
 
+void ModelScene::OnLoseFocus()
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnLoseControl();
+	}
+}
+
 bool ModelScene::OnMouseMove(double xPos, double yPos)
 {
 	if (m_cameraController)
@@ -113,12 +121,6 @@ bool ModelScene::OnKeyPressed(int key)
 	if (m_cameraController)
 	{
 		m_cameraController->OnKeyPressed(key);
-	}
-
-	if (key == GLFW_KEY_ESCAPE)
-	{
-		m_cameraController->EnableInput(!m_cameraController->inputEnabled());
-		return true;
 	}
 	return false;
 }

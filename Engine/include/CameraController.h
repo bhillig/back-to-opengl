@@ -10,17 +10,15 @@ public:
 	CameraController(Camera& camera);
 	~CameraController();
 
-	bool inputEnabled() const { return m_inputEnabled; }
-
 	void Update(float deltaTime);
-
-	void EnableInput(bool enabled);
 
 	void OnMouseMove(double xPos, double yPos);
 
 	void OnKeyPressed(int key);
 
 	void OnKeyReleased(int key);
+
+	void OnLoseControl();
 
 private:
 	Camera& m_camera;
@@ -33,6 +31,5 @@ private:
 	bool m_leftPressed;
 	bool m_rightPressed;
 
-	bool m_inputEnabled;
 	bool m_firstMouseMoveEvent;
 };

@@ -16,11 +16,8 @@ CameraController::CameraController(Camera& camera)
 	, m_backwardPressed(false)
 	, m_leftPressed(false)
 	, m_rightPressed(false)
-	, m_inputEnabled(true)
 	, m_firstMouseMoveEvent(true)
 {
-	const int cursorMode = glfwGetInputMode(Core::Application::GetApp()->GetGLFWWindow(), GLFW_CURSOR);
-	EnableInput(cursorMode == GLFW_CURSOR_DISABLED);
 }
 
 CameraController::~CameraController()
@@ -29,8 +26,6 @@ CameraController::~CameraController()
 
 void CameraController::Update(float deltaTime)
 {
-	if (!m_inputEnabled) return;
-
 	const glm::vec3 cameraForward = m_camera.forward();
 	const glm::vec3 walkDirection = glm::normalize(glm::vec3(cameraForward.x, 0.0f, cameraForward.z));
 	const float movementSpeed = 5.f;
@@ -57,21 +52,8 @@ void CameraController::Update(float deltaTime)
 	m_camera.Move(moveDelta);
 }
 
-void CameraController::EnableInput(bool enabled)
-{
-	m_inputEnabled = enabled;
-
-	// If we disabled input - reset mouse move event
-	if (!m_inputEnabled)
-	{
-		m_firstMouseMoveEvent = true;
-	}
-}
-
 void CameraController::OnMouseMove(double xPos, double yPos)
 {
-	if (!m_inputEnabled) return;
-
 	static double lastX;
 	static double lastY;
 
@@ -132,4 +114,9 @@ void CameraController::OnKeyReleased(int key)
 	{
 		m_rightPressed = false;
 	}
+}
+
+void CameraController::OnLoseControl()
+{
+	m_firstMouseMoveEvent = true;
 }

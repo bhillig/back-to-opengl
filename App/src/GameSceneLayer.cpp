@@ -20,6 +20,7 @@
 #define STRINGIFY(X) #X
 
 GameSceneLayer::GameSceneLayer()
+	: m_sceneHasFocus(true)
 {
 	m_currentScene = std::make_unique<LightingDemoScene>();
 }
@@ -35,15 +36,15 @@ void GameSceneLayer::OnEvent(Core::Event& event)
 {
 	Core::EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<Core::KeyPressedEvent>([this](Core::KeyPressedEvent& event) { return OnKeyPressed(event.GetKeyCode()); });
-
 	m_currentScene->OnEvent(event);
 }
 
 bool GameSceneLayer::OnKeyPressed(int keyCode)
 {
+	// Toggle scene focus
 	if (keyCode == GLFW_KEY_ESCAPE)
 	{
-		ToggleInputMode();
+		ToggleSceneFocus();
 	}
 	return false;
 }
@@ -69,18 +70,15 @@ void GameSceneLayer::RenderGUI()
 	ImGui::End();
 }
 
-void GameSceneLayer::ToggleInputMode()
+void GameSceneLayer::ToggleSceneFocus()
 {
-	const int cursorMode = glfwGetInputMode(Core::Application::GetApp()->GetGLFWWindow(), GLFW_CURSOR);
-	switch (cursorMode)
+	m_sceneHasFocus = !m_sceneHasFocus;
+	if (m_sceneHasFocus)
 	{
-	case GLFW_CURSOR_DISABLED:
-		glfwSetInputMode(Core::Application::GetApp()->GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		break;
-	case GLFW_CURSOR_NORMAL:
-		glfwSetInputMode(Core::Application::GetApp()->GetGLFWWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		break;
-	default:
-		break;
+		m_currentScene->OnGainFocus();
+	}
+	else
+	{
+		m_currentScene->OnLoseFocus();
 	}
 }

@@ -1,6 +1,7 @@
 #include <Application.h>
 
 #include <GameSceneLayer.h>
+#include <GUILayer.h>
 
 #include <iostream>
 
@@ -19,6 +20,7 @@ int main(int argc, char* argv[])
 	}
 
 	app.AddLayer<GameSceneLayer>();
+	app.AddLayer<GUILayer>();
 
 	app.Run();
 

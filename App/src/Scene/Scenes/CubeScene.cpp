@@ -198,6 +198,14 @@ void CubeScene::Render()
 	m_texture->Unbind();
 }
 
+void CubeScene::OnLoseFocus()
+{
+	if (m_cameraController)
+	{
+		m_cameraController->OnLoseControl();
+	}
+}
+
 bool CubeScene::OnMouseMove(double xPos, double yPos)
 {
 	if (m_cameraController)
@@ -212,12 +220,6 @@ bool CubeScene::OnKeyPressed(int key)
 	if (m_cameraController)
 	{
 		m_cameraController->OnKeyPressed(key);
-	}
-
-	if (key == GLFW_KEY_ESCAPE)
-	{
-		m_cameraController->EnableInput(!m_cameraController->inputEnabled());
-		return true;
 	}
 	return false;
 }

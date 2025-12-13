@@ -104,6 +104,10 @@ void Application::RaiseEvent(Event& event)
 	for (auto& layer : std::views::reverse(m_layerStack))
 	{
 		layer->OnEvent(event);
+		if (event.Handled)
+		{
+			break;
+		}
 	}
 }
 
