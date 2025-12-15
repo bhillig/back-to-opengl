@@ -2,6 +2,8 @@
 
 #include <Scene/Scene.h>
 
+#include <ECS/EntityManager.h>
+
 #include <CameraController.h>
 
 #include <Renderer/Model.h>
@@ -40,8 +42,6 @@ protected:
 
 private:
 
-	glm::vec3 m_objectPosition;
-
 	std::unique_ptr<Camera> m_camera;
 	std::unique_ptr<CameraController> m_cameraController;
 
@@ -49,5 +49,5 @@ private:
 
 	std::unique_ptr<Model> m_model;
 
-	float m_scale;
+	ECS::EntityManager m_entityManager;
 };

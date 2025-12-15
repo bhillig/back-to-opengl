@@ -16,6 +16,7 @@
 class Model
 {
 public:
+	Model() {}
 	Model(const char* filepath);
 
 	void Draw(Shader& shader);

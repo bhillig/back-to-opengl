@@ -22,7 +22,7 @@
 GameSceneLayer::GameSceneLayer()
 	: m_sceneHasFocus(true)
 {
-	m_currentScene = std::make_unique<LightingDemoScene>();
+	m_currentScene = std::make_unique<ModelScene>();
 }
 
 void GameSceneLayer::OnUpdate(float deltaTime)

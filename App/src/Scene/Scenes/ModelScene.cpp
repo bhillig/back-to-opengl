@@ -2,6 +2,8 @@
 
 #include <Application.h>
 
+#include <ECS/Component.h>
+
 #include <Renderer/VertexBuffer.h>
 #include <Renderer/VertexBufferLayout.h>
 #include <Renderer/ElementBuffer.h>
@@ -23,6 +25,7 @@ const std::string kColorFromTextureFS = SHADER_DIR + std::string("/colorFromText
 const std::string kBackpackModel = MODEL_DIR + std::string("/backpack/backpack.obj");
 
 ModelScene::ModelScene()
+	: m_entityManager(10)
 {
 	// Set model
 	m_model = std::make_unique<Model>(kBackpackModel.c_str());
@@ -38,12 +41,6 @@ ModelScene::ModelScene()
 	m_camera = std::make_unique<Camera>(cameraPos, 0.0f, -90.f, 0.0f, cameraFOV);
 	m_cameraController = std::make_unique<CameraController>(*m_camera);
 
-	// Set object position
-	m_objectPosition = glm::vec3(0.f, 0.f, 0.f);
-
-	// Set object scale
-	m_scale = 1.f;
-
 	// Set initial color
 	const glm::vec4 bgColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a);
@@ -51,22 +48,79 @@ ModelScene::ModelScene()
 
 void ModelScene::ConstructGUI()
 {
-	ImGui::Text("Model Scene");
-	float fov = m_camera->fov();
-	if (ImGui::SliderFloat("Camera FOV", &fov, 1.0f, 100.f))
+	Scene::ConstructGUI();
+
+	ImGui::Begin("Level Tree");
+
+	if (ImGui::Button("+ Add Entity"))
 	{
-		m_camera->SetFOV(fov);
+		m_entityManager.CreateEntity();
 	}
-	float objectPos[3]{ m_objectPosition.x, m_objectPosition.y, m_objectPosition.z };
-	if (ImGui::SliderFloat3("Object Position", objectPos, -5.f, 5.f))
+
+
+	for (size_t i = 0; i < m_entityManager.GetEntityCount(); ++i)
 	{
-		m_objectPosition = glm::vec3(objectPos[0], objectPos[1], objectPos[2]);
+		ImGui::Separator();
+
+		ECS::Entity& entity = m_entityManager.GetEntity(i);
+
+		// Display Entity Name
+		const std::string entityDisplayName = std::string("Entity ") + std::to_string(entity.GetID()) + "\n";
+		ImGui::Text(entityDisplayName.c_str());
+
+
+		// Display Entity Transform
+		if (entity.HasComponent<ECS::TransformComponent>())
+		{
+			ECS::TransformComponent& transformComp = entity.GetComponent<ECS::TransformComponent>();
+
+			float objectPos[3]{ transformComp.x, transformComp.y, transformComp.z };
+			const std::string transformLabel = std::string("Transform##") + entityDisplayName;
+			if (ImGui::InputFloat3(transformLabel.c_str(), objectPos))
+			{
+				transformComp.x = static_cast<double>(objectPos[0]);
+				transformComp.y = static_cast<double>(objectPos[1]);
+				transformComp.z = static_cast<double>(objectPos[2]);
+			}
+			const std::string removeTransformLabel = std::string("Remove Transform Component##") + entityDisplayName;
+			if (ImGui::Button(removeTransformLabel.c_str()))
+			{
+				entity.RemoveComponent<ECS::TransformComponent>();
+			}
+		}
+		// Prompt to add transform
+		else
+		{
+			const std::string addTransformLabel = std::string("Add Transform Component##") + entityDisplayName;
+			if (ImGui::Button(addTransformLabel.c_str()))
+			{
+				entity.AddComponent<ECS::TransformComponent>();
+			}
+		}
+
+		// Display Entity Mesh
+		if (entity.HasComponent<ECS::MeshComponent>())
+		{
+			ImGui::Text("Mesh: [ACTIVE]");
+			const std::string removeMeshLabel = std::string("Remove Mesh Component##") + entityDisplayName;
+			if (ImGui::Button(removeMeshLabel.c_str()))
+			{
+				entity.RemoveComponent<ECS::MeshComponent>();
+			}
+		}
+		// Prompt to add mesh
+		else
+		{
+			const std::string addMeshLabel = std::string("Add Mesh Component##") + entityDisplayName;
+			if (ImGui::Button(addMeshLabel.c_str()))
+			{
+				entity.AddComponent<ECS::MeshComponent>(m_model.get());
+			}
+		}
 	}
-	float scale = m_scale;
-	if (ImGui::SliderFloat("Object Scale", &scale, 0.1f, 2.f))
-	{
-		m_scale = scale;
-	}
+
+	ImGui::End();
+
 }
 
 void ModelScene::Update(float deltaTime)
@@ -87,14 +141,26 @@ void ModelScene::Render()
 	glm::mat4 projection = glm::perspective(glm::radians(m_camera->fov()), static_cast<float>(Core::Application::GetApp()->GetWindow().GetWidth()) / Core::Application::GetApp()->GetWindow().GetHeight(), 0.1f, 100.f);
 	m_modelShader->SetUniformMatrix4fv("u_Projection", glm::value_ptr(projection));
 
-	// Set model matrix for model
-	glm::mat4 modelObj(1.f);
-	modelObj = glm::translate(modelObj, m_objectPosition);
-	modelObj = glm::scale(modelObj, glm::vec3(m_scale, m_scale, m_scale));
-	m_modelShader->SetUniformMatrix4fv("u_Model", glm::value_ptr(modelObj));
+	for (size_t i = 0; i < m_entityManager.GetEntityCount(); ++i)
+	{
+		ECS::TransformComponent& transformComp = m_entityManager.GetComponentFromEntity<ECS::TransformComponent>(i);
+		ECS::MeshComponent& meshComp = m_entityManager.GetComponentFromEntity<ECS::MeshComponent>(i);
+		if (!transformComp.IsActive() || !meshComp.IsActive())
+		{
+			continue;
+		}
 
-	// Draw model
-	m_model->Draw(*m_modelShader);
+		// Set model matrix for model
+		glm::mat4 modelObj(1.f);
+		modelObj = glm::translate(modelObj, glm::vec3(transformComp.x, transformComp.y, transformComp.z));
+		m_modelShader->SetUniformMatrix4fv("u_Model", glm::value_ptr(modelObj));
+
+		// Draw model
+		if (Model* model = meshComp.GetModel())
+		{
+			model->Draw(*m_modelShader);
+		}
+	}
 }
 
 void ModelScene::OnLoseFocus()

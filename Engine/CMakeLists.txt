@@ -54,6 +54,8 @@ set(SOURCES
 	src/Camera.cpp
 	src/CameraController.cpp
 	src/Window.cpp
+	src/ECS/EntityManager.cpp
+	src/ECS/EntityMemoryPool.cpp
 	src/Renderer/ElementBuffer.cpp
 	src/Renderer/Mesh.cpp
 	src/Renderer/Model.cpp
@@ -68,6 +70,10 @@ set(HEADERS
 	include/Application.h
 	include/Camera.h
 	include/CameraController.h
+	include/ECS/Component.h
+	include/ECS/Entity.h
+	include/ECS/EntityManager.h
+	include/ECS/EntityMemoryPool.h
 	include/Events/Event.h
 	include/Events/InputEvents.h
 	include/Events/WindowEvents.h
