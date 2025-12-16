@@ -1,5 +1,5 @@
-# OpenGL 3D Renderer
-A Custom OpenGL 3D renderer capable of loading complex models, rendering multiple scenes, and managing a dynamic set of objects
+# OpenGL 3D Game Engine
+A Custom OpenGL 3D game engine capable of loading complex models, rendering multiple scenes, and managing a dynamic set of objects
 
 ## Other Projects:
 Take a look at my other projects:
