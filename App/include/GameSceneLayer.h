@@ -23,11 +23,9 @@ private:
 
 private:
 
-	void RenderGUI();
-
 	void ToggleSceneFocus();
 
 	bool m_sceneHasFocus;
 
-	std::unique_ptr<Scene> m_currentScene;
+	std::unique_ptr<Scene> m_scene;
 };

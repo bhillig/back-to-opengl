@@ -4,18 +4,12 @@ set(SOURCES
     src/Main.cpp
     src/GameSceneLayer.cpp
     src/GUILayer.cpp
-    src/Scene/Scene.cpp
-	src/Scene/Scenes/CubeScene.cpp
-	src/Scene/Scenes/LightingDemoScene.cpp
-	src/Scene/Scenes/ModelScene.cpp)
+    src/Scene/Scene.cpp)
 
 set(HEADERS
     include/GameSceneLayer.h
     include/GUILayer.h
-	include/Scene/Scene.h
-	include/Scene/Scenes/CubeScene.h
-	include/Scene/Scenes/LightingDemoScene.h
-	include/Scene/Scenes/ModelScene.h)
+	include/Scene/Scene.h)
 
 add_executable(App ${SOURCES} ${HEADERS})
 

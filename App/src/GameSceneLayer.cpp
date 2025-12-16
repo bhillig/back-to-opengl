@@ -7,9 +7,7 @@
 
 #include <Events/InputEvents.h>
 
-#include <Scene/Scenes/CubeScene.h>
-#include <Scene/Scenes/LightingDemoScene.h>
-#include <Scene/Scenes/ModelScene.h>
+#include <Scene/Scene.h>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -22,21 +20,20 @@
 GameSceneLayer::GameSceneLayer()
 	: m_sceneHasFocus(true)
 {
-	m_currentScene = std::make_unique<ModelScene>();
+	m_scene = std::make_unique<Scene>();
 }
 
 void GameSceneLayer::OnUpdate(float deltaTime)
 {
 	// Simulate the current scene (Update and Render)
-	m_currentScene->Simulate(deltaTime);
-	RenderGUI();
+	m_scene->Simulate(deltaTime);
 }
 
 void GameSceneLayer::OnEvent(Core::Event& event)
 {
 	Core::EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<Core::KeyPressedEvent>([this](Core::KeyPressedEvent& event) { return OnKeyPressed(event.GetKeyCode()); });
-	m_currentScene->OnEvent(event);
+	m_scene->OnEvent(event);
 }
 
 bool GameSceneLayer::OnKeyPressed(int keyCode)
@@ -49,36 +46,15 @@ bool GameSceneLayer::OnKeyPressed(int keyCode)
 	return false;
 }
 
-void GameSceneLayer::RenderGUI()
-{
-	// Render the current scene
-	ImGui::Begin("Properties");
-	m_currentScene->ConstructGUI();
-	ImGui::Text("Scenes:");
-	if (ImGui::Button(STRINGIFY(LightingDemoScene)))
-	{
-		m_currentScene = std::make_unique<LightingDemoScene>();
-	}
-	if (ImGui::Button(STRINGIFY(CubeScene)))
-	{
-		m_currentScene = std::make_unique<CubeScene>();
-	}
-	if (ImGui::Button(STRINGIFY(ModelScene)))
-	{
-		m_currentScene = std::make_unique<ModelScene>();
-	}
-	ImGui::End();
-}
-
 void GameSceneLayer::ToggleSceneFocus()
 {
 	m_sceneHasFocus = !m_sceneHasFocus;
 	if (m_sceneHasFocus)
 	{
-		m_currentScene->OnGainFocus();
+		m_scene->OnGainFocus();
 	}
 	else
 	{
-		m_currentScene->OnLoseFocus();
+		m_scene->OnLoseFocus();
 	}
 }

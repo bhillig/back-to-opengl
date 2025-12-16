@@ -2,37 +2,64 @@
 
 #include <Events/Event.h>
 
+#include <ECS/EntityManager.h>
+
+#include <Camera.h>
+#include <CameraController.h>
+
+class Shader;
+class Model;
+
 class Scene
 {
 public:
-	virtual ~Scene() {};
+	Scene();
+
+	inline Camera* GetCamera() { return m_camera.get(); }
+
+	inline ECS::EntityManager& GetEntityManager() { return m_entityManager; }
 
 	// Simulates the scene
 	void Simulate(float deltaTime, unsigned int timeSteps = 1);
 
-	// Constructs the scene's GUI properties
-	virtual void ConstructGUI() {}
-
 	// Process events
 	void OnEvent(Core::Event& event);
+	
+	// Called when the scene gains focus
+	void OnGainFocus();
 
-	virtual void OnGainFocus() {}
-
-	virtual void OnLoseFocus() {}
+	// Called when the scene loses focus
+	void OnLoseFocus();
 
 protected:
 
 	// Called every timeSteps times per frame to update the scene's logic
-	virtual void Update(float deltaTime) = 0;
+	void Update(float deltaTime);
 
 	// Called every frame to render the scene
-	virtual void Render() = 0;
+	void Render();
 
 protected:
 
 	// Event callbacks
-	virtual bool OnKeyPressed(int key) { return false; }
-	virtual bool OnKeyReleased(int key) { return false; }
-	virtual bool OnMouseMove(double xPos, double yPos) { return false; }
+	bool OnKeyPressed(int key);
+	bool OnKeyReleased(int key);
+	bool OnMouseMove(double xPos, double yPos);
 
+private:
+
+	// Constructs the scene's GUI
+	void ConstructGUI();
+
+	void ConstructLevelTreeGUI();
+
+protected:
+	ECS::EntityManager m_entityManager; // Contains all the entities for the scene
+	std::unique_ptr<Camera> m_camera; // Camera for the scene
+	std::unique_ptr<CameraController> m_cameraController; // CameraController for passing input to the camera
+
+private:
+	// TODO: Hacky fix for now - remove this when a more robust model system is implemented
+	std::unique_ptr<Shader> m_modelShader;
+	std::unique_ptr<Model> m_model;
 };
